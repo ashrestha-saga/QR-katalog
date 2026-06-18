@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+public/qr
+.env*.local
+data/*.mmdb
+data/GeoLite2-City*
+data/*.tar.gz
+*.tsbuildinfo
+next-env.d.ts
+.vercel

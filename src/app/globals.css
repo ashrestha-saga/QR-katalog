@@ -1,0 +1,608 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Color custom properties (--color-*) are injected on :root by the root layout
+ * from env vars (src/lib/theme.ts). The values below are semantic aliases that
+ * build on those tokens. The var() fallbacks keep the UI styled even if the
+ * injected block is missing.
+ */
+:root {
+  --foreground: var(--color-secondary, #195084);
+  --background: var(--color-wildsand, #f5f5f5);
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-opensans), "Open Sans", system-ui, sans-serif;
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--color-primary);
+  font-weight: 600;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+
+h1 {
+  font-size: 2.5rem;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+h3 {
+  font-size: 1.75rem;
+}
+
+h4 {
+  font-size: 1.5rem;
+}
+
+h5 {
+  font-size: 1.25rem;
+}
+
+h6 {
+  font-size: 1rem;
+}
+
+@layer components {
+  .app-container {
+    @apply mx-auto max-w-[920px] px-3 py-6 sm:px-6;
+  }
+
+  .brand-header {
+    @apply mb-6 flex items-center gap-4 rounded-xl bg-white px-5 py-5 shadow-card sm:px-7;
+  }
+
+  .brand-logo {
+    @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-mercury bg-white;
+  }
+
+  .brand-header-actions {
+    @apply ml-auto flex shrink-0 items-center gap-2;
+  }
+
+  .badge-version {
+    @apply shrink-0 rounded-lg bg-accent-mint px-3.5 py-1.5 text-xs font-semibold text-secondary;
+  }
+
+  .cart-icon-btn {
+    @apply relative flex h-11 w-11 items-center justify-center rounded-xl border border-mercury bg-porcelain text-xl transition hover:border-secondary/20 hover:bg-white;
+  }
+
+  .cart-icon-symbol {
+    @apply leading-none;
+  }
+
+  .cart-icon-badge {
+    @apply absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent-pink px-1 text-[10px] font-bold text-white;
+  }
+
+  .stage-card {
+    @apply mb-4 rounded-stage bg-white p-6 shadow-card sm:p-8;
+  }
+
+  .step-header {
+    @apply mb-6 flex flex-wrap items-center justify-between gap-3;
+  }
+
+  .step-title {
+    @apply text-xl font-semibold text-secondary;
+  }
+
+  .step-counter {
+    @apply rounded-lg bg-porcelain px-3.5 py-1.5 text-xs font-medium text-quinary;
+  }
+
+  .step-description {
+    @apply mb-6 text-sm text-quinary;
+  }
+
+  .selection-tabs {
+    @apply mb-5 flex flex-wrap gap-0 border-b border-mercury;
+  }
+
+  .selection-tab {
+    @apply cursor-pointer border-b-2 border-transparent bg-transparent px-4 py-2.5 text-sm font-medium text-quinary transition;
+  }
+
+  .selection-tab-active {
+    @apply border-accent-pink text-secondary;
+  }
+
+  .plz-search {
+    @apply mb-4 flex gap-2;
+  }
+
+  .verteilseite {
+    @apply rounded-xl border border-mercury bg-white p-5 sm:p-7;
+  }
+
+  .product-banner {
+    @apply mb-6 flex flex-wrap items-center gap-4 rounded-[10px] bg-porcelain p-4 sm:p-5;
+  }
+
+  .product-thumb {
+    @apply flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-lg bg-white text-3xl text-quinary;
+  }
+
+  .product-label {
+    @apply mb-0.5 text-[11px] font-medium uppercase tracking-wide text-quinary;
+  }
+
+  .product-price-banner {
+    @apply text-lg font-semibold text-accent-blue sm:ml-auto;
+  }
+
+  .product-price-mobile {
+    @apply text-base font-semibold text-accent-blue;
+  }
+
+  .product-tag {
+    @apply text-quinary;
+  }
+
+  .geo-detected {
+    @apply mb-4 flex flex-wrap items-center gap-2 rounded-[10px] bg-accent-success-bg px-4 py-3 text-sm text-accent-success-text;
+  }
+
+  .geo-warn {
+    @apply mb-4 rounded-[10px] bg-warning/15 px-4 py-3 text-sm text-secondary;
+  }
+
+  .haendler-option {
+    @apply flex w-full min-h-[48px] cursor-pointer items-center gap-3.5 rounded-[10px] border border-mercury bg-white px-4 py-3.5 text-left transition hover:border-secondary hover:bg-light;
+  }
+
+  .haendler-option-selected {
+    @apply border-2 border-accent-blue-light bg-accent-blue-bg;
+  }
+
+  .haendler-option-recommended {
+    @apply border-2 border-accent-blue-light bg-accent-blue-bg;
+  }
+
+  .haendler-icon {
+    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-porcelain text-lg text-quinary;
+  }
+
+  .badge-recommended {
+    @apply shrink-0 rounded-md bg-accent-blue px-2.5 py-1 text-[11px] font-medium text-white;
+  }
+
+  .order-summary {
+    @apply rounded-xl border border-mercury bg-white p-6;
+  }
+
+  .summary-row {
+    @apply flex justify-between border-b border-porcelain py-2.5 text-sm;
+  }
+
+  .summary-total {
+    @apply mt-4 flex justify-between border-t-2 border-secondary pt-4 text-lg font-semibold text-primary;
+  }
+
+  .quantity-control {
+    @apply inline-flex items-center gap-3 rounded-lg border border-mercury bg-white p-1;
+  }
+
+  .quantity-btn {
+    @apply flex h-8 w-8 items-center justify-center border-0 bg-transparent text-lg font-medium text-secondary hover:bg-porcelain disabled:opacity-40;
+  }
+
+  .input-field {
+    @apply w-full rounded-lg border border-mercury px-4 py-3 text-base text-secondary transition focus:border-accent-pink focus:outline-none;
+  }
+
+  .select-field {
+    @apply input-field;
+  }
+
+  .btn-primary {
+    @apply min-h-12 w-full rounded-lg border border-accent-pink bg-accent-pink px-5 py-3 text-center text-sm font-medium text-white transition hover:border-accent-pink-hover hover:bg-accent-pink-hover active:scale-[0.99] disabled:opacity-50;
+  }
+
+  .btn-secondary {
+    @apply min-h-12 w-full rounded-lg border border-primary bg-white px-5 py-3 text-center text-sm font-medium text-primary transition hover:border-primary-hover hover:bg-porcelain;
+  }
+
+  .btn-inline {
+    @apply min-h-0 w-auto shrink-0 px-5;
+  }
+
+  .nav-buttons {
+    @apply mt-6 flex flex-col gap-2.5 sm:flex-row;
+  }
+
+  .nav-buttons .btn-primary,
+  .nav-buttons .btn-secondary {
+    @apply sm:flex-1;
+  }
+
+  .card {
+    @apply rounded-xl border border-mercury bg-white p-4 shadow-card sm:p-5;
+  }
+
+  .card-inner {
+    @apply verteilseite;
+  }
+
+  .success-message {
+    @apply mb-5 rounded-xl bg-accent-success-bg p-6 text-center;
+  }
+
+  .success-icon {
+    @apply mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent-green text-3xl text-white;
+  }
+
+  .cookie-section {
+    @apply mt-5 flex min-h-[48px] items-center gap-2.5 border-t border-mercury pt-4;
+  }
+
+  .app-footer {
+    @apply mt-6 pb-8 text-center text-[11px] text-quinary;
+  }
+
+  .progress-step {
+    @apply h-1 flex-1 rounded-sm bg-mercury;
+  }
+
+  .progress-step-active {
+    @apply bg-accent-pink;
+  }
+
+  .progress-step-completed {
+    @apply bg-accent-green;
+  }
+
+  .app-main {
+    @apply w-full;
+  }
+
+  .progress-dots {
+    @apply mb-4 flex justify-center gap-1;
+  }
+
+  .progress-dot {
+    @apply h-1 w-8 rounded-sm bg-mercury;
+  }
+
+  .progress-dot-active {
+    @apply bg-accent-pink;
+  }
+
+  .progress-dot-completed {
+    @apply bg-accent-green;
+  }
+
+  .step-title-mobile {
+    @apply text-xl font-semibold text-secondary;
+  }
+
+  .step-subtitle-mobile {
+    @apply mt-1 text-[13px] text-quinary;
+  }
+
+  .product-card-mobile {
+    @apply mb-4 rounded-[14px] border border-mercury bg-white p-4;
+  }
+
+  .info-box-mobile {
+    @apply rounded-[10px] bg-light p-3 text-xs text-quinary;
+  }
+
+  .cookie-mobile {
+    @apply mt-3 flex items-start gap-2.5 rounded-[10px] bg-light p-3 text-xs text-quinary;
+  }
+
+  .mobile-bottom-nav {
+    @apply flex gap-2 border-t border-mercury bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))];
+  }
+
+  .nav-btn-mobile {
+    @apply flex min-h-[48px] flex-1 items-center justify-center gap-1.5 rounded-[10px] border border-mercury bg-white text-[15px] font-semibold text-secondary transition active:scale-[0.98] active:bg-light;
+  }
+
+  .nav-btn-mobile-primary {
+    @apply border-accent-pink bg-accent-pink text-white active:bg-accent-pink-hover;
+  }
+
+  .nav-btn-mobile-auto {
+    @apply min-h-[48px] shrink-0 px-4;
+  }
+
+  .cart-layout {
+    @apply grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-8;
+  }
+
+  .cart-table-header {
+    @apply mb-2 hidden border-b border-mercury pb-3 text-sm font-medium text-secondary lg:grid lg:grid-cols-[minmax(0,1fr)_120px_180px] lg:gap-4;
+  }
+
+  .cart-line {
+    @apply border-b border-mercury py-5 last:border-b-0;
+  }
+
+  .cart-line-grid {
+    @apply grid gap-4 lg:grid-cols-[minmax(0,1fr)_120px_180px] lg:items-start lg:gap-4;
+  }
+
+  .cart-line-product {
+    @apply flex min-w-0 gap-4;
+  }
+
+  .cart-line-thumb {
+    @apply h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-mercury bg-white;
+  }
+
+  .cart-line-title {
+    @apply text-base font-medium text-primary transition hover:text-primary-hover hover:underline;
+  }
+
+  .cart-line-meta {
+    @apply mt-1 text-sm text-quinary;
+  }
+
+  .cart-line-unit-price {
+    @apply text-sm text-secondary lg:text-right;
+  }
+
+  .cart-line-total-col {
+    @apply flex flex-row items-center justify-between gap-3 lg:flex-col lg:items-end lg:justify-start;
+  }
+
+  .cart-line-total {
+    @apply text-base font-bold text-secondary;
+  }
+
+  .cart-line-actions {
+    @apply flex items-center gap-3;
+  }
+
+  .cart-qty-control {
+    @apply inline-flex items-center overflow-hidden rounded-md border border-mercury bg-porcelain;
+  }
+
+  .cart-qty-btn {
+    @apply flex h-9 w-9 items-center justify-center bg-transparent text-lg font-medium text-secondary transition hover:bg-white disabled:opacity-40;
+  }
+
+  .cart-qty-value {
+    @apply min-w-[2rem] border-x border-mercury bg-white px-2 text-center text-sm font-medium text-secondary;
+  }
+
+  .cart-remove-btn {
+    @apply flex h-9 w-9 items-center justify-center rounded-md text-quinary transition hover:bg-porcelain hover:text-secondary;
+  }
+
+  .cart-summary {
+    @apply rounded-xl bg-porcelain p-6;
+  }
+
+  .cart-summary-title {
+    @apply mb-4 text-xl font-bold;
+  }
+
+  .cart-summary-row {
+    @apply flex justify-between gap-3 py-2 text-sm text-secondary;
+  }
+
+  .cart-summary-total {
+    @apply mt-2 flex justify-between gap-3 border-t border-mercury pt-4 text-lg font-bold text-primary;
+  }
+
+  .cart-checkout-btn {
+    @apply mt-5 min-h-12 w-full rounded-lg border border-primary bg-primary px-5 py-3 text-center text-sm font-semibold text-white transition hover:border-primary-hover hover:bg-primary-hover disabled:opacity-50;
+  }
+
+  .cart-payment-icons {
+    @apply mt-4 flex flex-wrap items-center justify-center gap-2;
+  }
+
+  .cart-payment-icon {
+    @apply flex h-7 min-w-[42px] items-center justify-center rounded border border-mercury bg-white px-2 text-[10px] font-semibold uppercase tracking-wide text-quinary;
+  }
+
+  .cart-scan-link {
+    @apply mt-6 inline-flex text-sm font-medium text-primary hover:text-primary-hover hover:underline;
+  }
+
+  .site-footer {
+    @apply mt-8 border-t border-mercury bg-white;
+  }
+
+  .site-footer-inner {
+    @apply mx-auto grid max-w-[920px] grid-cols-2 gap-6 px-4 py-6 sm:grid-cols-3 sm:gap-10 sm:px-6 sm:py-8;
+  }
+
+  .site-footer-name {
+    @apply text-sm font-semibold text-primary;
+  }
+
+  .site-footer-address {
+    @apply mt-3 text-sm not-italic leading-relaxed text-quinary;
+  }
+
+  .site-footer-contact {
+    @apply mt-3 space-y-2 text-sm text-quinary;
+  }
+
+  .site-footer-contact li {
+    @apply flex items-center gap-2;
+  }
+
+  .site-footer-contact svg {
+    @apply shrink-0 text-primary;
+  }
+
+  .site-footer-heading {
+    @apply text-sm font-semibold text-secondary;
+  }
+
+  .site-footer-link {
+    @apply mt-3 inline-block text-sm text-quinary hover:text-secondary hover:underline;
+  }
+}
+
+@media (max-width: 767px) {
+  .app-container {
+    @apply px-4 py-4;
+  }
+
+  .brand-header {
+    @apply mb-4 px-4 py-4;
+  }
+
+  .badge-version {
+    @apply hidden sm:inline-flex;
+  }
+
+  .stage-card {
+    @apply rounded-xl p-4 shadow-card;
+  }
+
+  .step-description {
+    @apply hidden;
+  }
+
+  .site-footer-address {
+    @apply mt-2 text-[13px] leading-snug;
+  }
+
+  .site-footer-contact {
+    @apply mt-2 space-y-1.5 text-[13px];
+  }
+
+  .verteilseite {
+    @apply rounded-[14px] border border-mercury p-4;
+  }
+
+  .product-banner {
+    @apply mb-4 flex-col items-start gap-3 rounded-[14px] border border-mercury bg-white p-4;
+  }
+
+  .product-thumb {
+    @apply h-14 w-14 rounded-[10px] bg-porcelain;
+  }
+
+  .product-price-banner {
+    @apply ml-0 mt-2 text-base;
+  }
+
+  .selection-tabs {
+    @apply gap-1 rounded-[10px] border-0 bg-porcelain p-1;
+  }
+
+  .selection-tab {
+    @apply flex-1 rounded-lg border-0 px-2 py-2 text-xs;
+  }
+
+  .selection-tab-active {
+    @apply border-0 bg-white text-secondary shadow-[0_1px_3px_rgba(10,22,40,0.08)];
+  }
+
+  .geo-detected {
+    @apply mb-3 py-2.5 text-xs;
+  }
+
+  .geo-warn {
+    @apply mb-3 text-xs;
+  }
+
+  .haendler-option {
+    @apply mb-2 gap-3 rounded-xl p-3.5 active:scale-[0.98];
+  }
+
+  .haendler-icon {
+    @apply h-9 w-9 text-base;
+  }
+
+  .badge-recommended {
+    @apply hidden;
+  }
+
+  .badge-recommended-mobile {
+    @apply shrink-0 rounded bg-accent-blue px-2 py-0.5 text-[10px] font-medium text-white;
+  }
+
+  .plz-search {
+    @apply flex-col;
+  }
+
+  .plz-search .btn-primary.btn-inline {
+    @apply min-h-12 w-full;
+  }
+
+  .input-field {
+    @apply py-3.5 text-base;
+  }
+
+  .quantity-control {
+    @apply gap-1 bg-porcelain p-0.5;
+  }
+
+  .quantity-btn {
+    @apply h-8 w-8 rounded-md bg-white;
+  }
+
+  .quantity-row-mobile {
+    @apply mb-3 flex items-center justify-between rounded-xl border border-mercury bg-white px-4 py-3.5;
+  }
+
+  .order-summary {
+    @apply mb-4 rounded-xl p-4;
+  }
+
+  .summary-row {
+    @apply py-2 text-[13px];
+  }
+
+  .summary-total {
+    @apply mt-2 border-t-2 border-secondary pt-3 text-[17px];
+  }
+
+  .cookie-section {
+    @apply mt-3 flex items-start gap-2.5 rounded-[10px] border-0 bg-light p-3 pt-0 text-xs text-quinary;
+  }
+
+  .nav-buttons {
+    @apply mt-6 flex flex-col gap-2;
+  }
+
+  .nav-buttons .btn-primary,
+  .nav-buttons .btn-secondary {
+    @apply nav-btn-mobile min-h-[48px] flex-1 border text-[15px] font-semibold;
+  }
+
+  .nav-buttons .btn-primary {
+    @apply nav-btn-mobile-primary border-accent-pink;
+  }
+
+  .nav-buttons .btn-secondary {
+    @apply nav-btn-mobile text-secondary;
+  }
+
+  .nav-buttons .nav-btn-back {
+    @apply min-h-[48px] shrink-0 px-4;
+  }
+
+  .success-message {
+    @apply mb-4 rounded-[14px] px-4 py-6;
+  }
+
+  .success-icon {
+    @apply mb-3 h-16 w-16 text-3xl;
+  }
+
+}

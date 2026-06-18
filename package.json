@@ -1,0 +1,35 @@
+{
+  "name": "katalog-routing-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "geo:download": "node scripts/download-geolite.mjs",
+    "qr:clean": "node -e \"import('fs/promises').then(fs=>fs.rm('public/qr',{recursive:true,force:true}))\"",
+    "qr:generate": "node scripts/generate-qr.mjs"
+  },
+  "dependencies": {
+    "geoip-lite": "^1.4.10",
+    "html5-qrcode": "^2.3.8",
+    "maxmind": "^4.3.23",
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/geoip-lite": "^1.4.4",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.16.0",
+    "eslint-config-next": "^15.1.0",
+    "postcss": "^8.4.49",
+    "qrcode": "^1.5.4",
+    "tailwindcss": "^3.4.16",
+    "typescript": "^5.7.2"
+  }
+}
