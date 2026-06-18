@@ -209,6 +209,14 @@ h6 {
     @apply input-field;
   }
 
+  .inquiry-form-row {
+    @apply grid gap-2 border-b border-mercury/70 py-3.5 md:grid-cols-[minmax(9.5rem,11rem)_1fr] md:items-center md:gap-4;
+  }
+
+  .inquiry-form-label {
+    @apply text-sm font-semibold text-secondary;
+  }
+
   .btn-primary {
     @apply min-h-12 w-full rounded-lg border border-accent-pink bg-accent-pink px-5 py-3 text-center text-sm font-medium text-white transition hover:border-accent-pink-hover hover:bg-accent-pink-hover active:scale-[0.99] disabled:opacity-50;
   }

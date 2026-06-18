@@ -4,6 +4,7 @@ import {
   buildTargetUrl,
   getHaendler,
 } from "@/lib/mock-data";
+import { getOrderMode } from "@/lib/order-mode";
 import { fetchArticleBySku } from "@/lib/product-source";
 import {
   buildOxidAddToCartUrl,
@@ -72,6 +73,13 @@ export async function POST(request: Request) {
 
   if (!Array.isArray(rawLines) || rawLines.length === 0) {
     return NextResponse.json({ error: "lines required" }, { status: 400 });
+  }
+
+  if (getOrderMode() !== "shop") {
+    return NextResponse.json(
+      { error: "Shop checkout is not enabled; use order inquiry instead" },
+      { status: 400 }
+    );
   }
 
   if (!WIZARD_HAENDLER_STEP_ENABLED) {

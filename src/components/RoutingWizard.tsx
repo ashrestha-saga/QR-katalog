@@ -15,6 +15,8 @@ import {
   formatTaxRate,
 } from "@/lib/pricing";
 import { setHaendlerCookie } from "@/lib/cookies";
+import { DEFAULT_CATALOG_SLUG } from "@/lib/catalog-constants";
+import { isShopCheckoutEnabled } from "@/lib/order-mode";
 import { useGeo } from "@/hooks/useGeo";
 import type { ArticleConfiguration } from "@/lib/wishlist-session";
 import {
@@ -31,6 +33,7 @@ import {
   type GeoSelectionTab,
 } from "./GeoHaendlerStep";
 import { HaendlerSelectionStep } from "./HaendlerSelectionStep";
+import { OrderInquiryModal } from "./OrderInquiryModal";
 import { ProductDetailStep } from "./ProductDetailStep";
 import { ProductSideSummary } from "./ProductSideSummary";
 import { ProductThumb } from "./ProductThumb";
@@ -87,6 +90,10 @@ export function RoutingWizard({
   const [plz, setPlz] = useState("");
   const [selectionTab, setSelectionTab] = useState<GeoSelectionTab>("geo");
   const [plzSearched, setPlzSearched] = useState(false);
+  const [showInquiryModal, setShowInquiryModal] = useState(false);
+  const [inquirySubmitted, setInquirySubmitted] = useState(false);
+  const shopCheckoutEnabled = isShopCheckoutEnabled();
+  const resolvedCatalogSlug = catalogSlug?.trim() || DEFAULT_CATALOG_SLUG;
 
   const { geo, loading: geoLoading, error: geoError, fetchGeo } = useGeo(false);
 
@@ -138,6 +145,10 @@ export function RoutingWizard({
   }, []);
 
   useEffect(() => {
+    if (!shopCheckoutEnabled) {
+      setIsRedirecting(false);
+      return;
+    }
     if (step !== WIZARD_SUCCESS_STEP || wishlistMode) {
       setIsRedirecting(false);
       return;
@@ -150,11 +161,9 @@ export function RoutingWizard({
     return () => {
       window.clearTimeout(timer);
     };
-  }, [step, wishlistMode, forwardUrl]);
+  }, [step, wishlistMode, forwardUrl, shopCheckoutEnabled]);
 
   const finish = useCallback(() => {
-    const url = forwardUrl();
-
     if (wishlistMode && onSaveToCart) {
       const config: ArticleConfiguration = {
         sku: product.sku,
@@ -172,6 +181,13 @@ export function RoutingWizard({
       return;
     }
 
+    if (!shopCheckoutEnabled) {
+      setShowInquiryModal(true);
+      return;
+    }
+
+    const url = forwardUrl();
+
     if (WIZARD_HAENDLER_STEP_ENABLED && remember) {
       setHaendlerCookie(selectedHaendler);
     }
@@ -181,16 +197,23 @@ export function RoutingWizard({
     forwardUrl,
     wishlistMode,
     onSaveToCart,
-    product.sku,
+    product,
     quantity,
     remember,
     selectedHaendler,
     region,
     onComplete,
+    shopCheckoutEnabled,
   ]);
 
+  const handleInquirySuccess = useCallback(() => {
+    setShowInquiryModal(false);
+    setInquirySubmitted(true);
+    setStep(WIZARD_SUCCESS_STEP);
+  }, []);
+
   if (step === WIZARD_SUCCESS_STEP) {
-    const url = forwardUrl();
+    const url = shopCheckoutEnabled ? forwardUrl() : "#";
 
     const successBody =
       wishlistMode && catalogSlug ? (
@@ -221,6 +244,42 @@ export function RoutingWizard({
             <Link href={`/c/${catalogSlug}/cart`} className="btn-secondary">
               Zum Warenkorb
             </Link>
+          </div>
+        </div>
+      ) : inquirySubmitted ? (
+        <div className="stage-card">
+          <StepIndicator current={WIZARD_SUCCESS_STEP} total={WIZARD_SUCCESS_STEP} />
+          <p className="step-description">Ihre Anfrage wurde übermittelt.</p>
+          <div className="success-message">
+            <div className="success-icon" aria-hidden>
+              ✓
+            </div>
+            <h2 className="text-xl font-semibold text-accent-success-text">
+              Anfrage gesendet
+            </h2>
+            <p className="mt-2 text-sm text-accent-success-muted">
+              <strong>{product.name}</strong> · {quantity}×
+            </p>
+            <p className="mt-2 text-sm text-quinary">
+              Der Anbieter wurde per E-Mail informiert und kann sich bei Ihnen
+              melden.
+            </p>
+          </div>
+          <div className="nav-buttons">
+            {catalogSlug ? (
+              <>
+                <Link href={`/c/${catalogSlug}/scan`} className="btn-primary">
+                  Weiteren Artikel scannen
+                </Link>
+                <Link href={`/c/${catalogSlug}`} className="btn-secondary">
+                  Zur Startseite
+                </Link>
+              </>
+            ) : (
+              <Link href="/" className="btn-primary">
+                Zur Startseite
+              </Link>
+            )}
           </div>
         </div>
       ) : (
@@ -276,8 +335,34 @@ export function RoutingWizard({
         </div>
       );
 
-    if (!useShell) return successBody;
-    return <AppShell brandBadge="Fertig">{successBody}</AppShell>;
+    if (!useShell) {
+      return (
+        <>
+          {showInquiryModal ? (
+            <OrderInquiryModal
+              catalogSlug={resolvedCatalogSlug}
+              lines={[{ sku: product.sku, quantity, product }]}
+              onClose={() => setShowInquiryModal(false)}
+              onSuccess={handleInquirySuccess}
+            />
+          ) : null}
+          {successBody}
+        </>
+      );
+    }
+    return (
+      <AppShell brandBadge="Fertig">
+        {showInquiryModal ? (
+          <OrderInquiryModal
+            catalogSlug={resolvedCatalogSlug}
+            lines={[{ sku: product.sku, quantity, product }]}
+            onClose={() => setShowInquiryModal(false)}
+            onSuccess={handleInquirySuccess}
+          />
+        ) : null}
+        {successBody}
+      </AppShell>
+    );
   }
 
   const wizardBody = (
@@ -466,10 +551,15 @@ export function RoutingWizard({
                   ℹ️ Deine Auswahl wird im Warenkorb gespeichert. Du kannst danach
                   weitere Artikel scannen oder zur Bestellübersicht wechseln.
                 </>
-              ) : (
+              ) : shopCheckoutEnabled ? (
                 <>
                   ℹ️ Du wirst mit deinen Artikeln zur Bestellung weitergeleitet, um die
                   Bestellung abzuschließen.
+                </>
+              ) : (
+                <>
+                  ℹ️ Ohne Online-Shop sendest du eine Anfrage mit deinen
+                  Kontaktdaten an den Anbieter.
                 </>
               )}
             </div>
@@ -489,12 +579,14 @@ export function RoutingWizard({
               </button>
               <button type="button" className="btn-primary md:flex-1" onClick={finish}>
                 <span className="md:hidden">
-                  {wishlistMode ? "Speichern →" : "Bestellen →"}
+                  {wishlistMode ? "Speichern →" : shopCheckoutEnabled ? "Bestellen →" : "Anfrage →"}
                 </span>
                 <span className="hidden md:inline">
                   {wishlistMode
                     ? "In Warenkorb speichern →"
-                    : "Zur Bestellung →"}
+                    : shopCheckoutEnabled
+                      ? "Zur Bestellung →"
+                      : "Anfrage senden →"}
                 </span>
               </button>
             </div>
@@ -512,10 +604,32 @@ export function RoutingWizard({
     </>
   );
 
-  if (!useShell) return wizardBody;
+  if (!useShell) {
+    return (
+      <>
+        {showInquiryModal ? (
+          <OrderInquiryModal
+            catalogSlug={resolvedCatalogSlug}
+            lines={[{ sku: product.sku, quantity, product }]}
+            onClose={() => setShowInquiryModal(false)}
+            onSuccess={handleInquirySuccess}
+          />
+        ) : null}
+        {wizardBody}
+      </>
+    );
+  }
 
   return (
     <AppShell brandTitle="QR-Routing Erweitert" brandBadge="Mit Bestellung">
+      {showInquiryModal ? (
+        <OrderInquiryModal
+          catalogSlug={resolvedCatalogSlug}
+          lines={[{ sku: product.sku, quantity, product }]}
+          onClose={() => setShowInquiryModal(false)}
+          onSuccess={handleInquirySuccess}
+        />
+      ) : null}
       {wizardBody}
     </AppShell>
   );
