@@ -1,5 +1,9 @@
 import type { ReactNode } from "react";
 import type { Product } from "@/lib/mock-data";
+import {
+  formatVariantWithUnit,
+  shouldShowShortDescription,
+} from "@/lib/product-format";
 import { ProductThumb } from "./ProductThumb";
 
 type Props = {
@@ -19,31 +23,27 @@ export function ProductSideSummary({
   showDeliveryScope = false,
   nameClassName = "text-[15px] font-semibold text-primary md:text-base",
 }: Props) {
+  const variantLine = formatVariantWithUnit(product);
+
   return (
     <div className="flex items-center gap-3 text-left">
       {thumb ?? <ProductThumb product={product} />}
       <div className="min-w-0 flex-1">
         <div className="product-label">Artikel {product.sku}</div>
         <div className={nameClassName}>{product.name}</div>
-        {product.variant ? (
+        {variantLine ? (
           <div className="mt-0.5 text-[13px] font-medium text-secondary md:text-sm">
-            {product.variant}
+            {variantLine}
           </div>
         ) : null}
-        {product.shortDescription ? (
+        {shouldShowShortDescription(product) ? (
           <p className="mt-1 line-clamp-2 text-[13px] leading-snug text-quinary md:text-sm">
             {product.shortDescription}
           </p>
         ) : null}
-        {(showEdition && product.catalogEdition) ||
-        (showDeliveryScope && product.unitName) ? (
+        {showEdition && product.catalogEdition ? (
           <div className="mt-1 text-[11px] text-quinary md:text-[13px]">
-            {showEdition && product.catalogEdition
-              ? `Edition ${product.catalogEdition}`
-              : null}
-            {showDeliveryScope && product.unitName
-              ? `${showEdition && product.catalogEdition ? ", " : ""}VE: ${product.unitName}`
-              : null}
+            Edition {product.catalogEdition}
           </div>
         ) : null}
         {showDetailsHint ? (

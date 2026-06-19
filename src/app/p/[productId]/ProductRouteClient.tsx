@@ -77,5 +77,7 @@ export function ProductRouteClient({
   }
 
   if (mode === "fast") return <FastRedirect product={product} />;
-  return <RoutingWizard product={product} />;
+  const resolvedCatalogSlug =
+    catalogSlug ?? getCatalogSession() ?? DEFAULT_CATALOG_SLUG;
+  return <RoutingWizard product={product} catalogSlug={resolvedCatalogSlug} />;
 }

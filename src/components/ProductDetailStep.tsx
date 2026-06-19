@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 import type { Product } from "@/lib/mock-data";
+import {
+  formatVariantWithUnit,
+  shouldShowShortDescription,
+} from "@/lib/product-format";
 import { ProductSideSummary } from "./ProductSideSummary";
 
 type Props = {
@@ -132,8 +136,9 @@ function ProductDetailModal({
     };
   }, [onClose]);
 
+  const variantLine = formatVariantWithUnit(product);
   const hasMeta =
-    product.shortDescription ||
+    shouldShowShortDescription(product) ||
     product.details ||
     product.modelType ||
     product.unitName ||
@@ -170,12 +175,12 @@ function ProductDetailModal({
               >
                 {product.name}
               </h2>
-              {product.variant && (
+              {variantLine && (
                 <p className="mt-1 text-sm font-medium text-secondary md:text-base">
-                  {product.variant}
+                  {variantLine}
                 </p>
               )}
-              {product.shortDescription && (
+              {shouldShowShortDescription(product) && (
                 <p className="mt-2 max-w-3xl text-sm leading-relaxed text-quinary md:text-base">
                   {product.shortDescription}
                 </p>
@@ -198,7 +203,7 @@ function ProductDetailModal({
           </div>
 
           <div className="grid gap-3 text-sm text-secondary md:grid-cols-2">
-            {product.shortDescription && (
+            {shouldShowShortDescription(product) && (
               <section className="rounded-[16px] border border-mercury bg-white p-4 shadow-sm md:col-span-2">
                 <h3 className="mb-1 text-sm font-semibold">
                   Kurzbeschreibung
@@ -227,7 +232,7 @@ function ProductDetailModal({
               </section>
             )}
 
-            {product.unitName && (
+            {product.unitName && !product.variant ? (
               <section className="rounded-[16px] border border-mercury bg-white p-4 shadow-sm">
                 <h3 className="mb-1 text-sm font-semibold">
                   Verpackungseinheit (VE)
@@ -236,7 +241,7 @@ function ProductDetailModal({
                   {product.unitName}
                 </p>
               </section>
-            )}
+            ) : null}
 
             {product.categories && product.categories.length > 0 && (
               <section className="rounded-[16px] border border-mercury bg-white p-4 shadow-sm">

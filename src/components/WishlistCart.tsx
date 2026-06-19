@@ -15,7 +15,10 @@ import {
   upsertCartLine,
   type ConfiguredCartLine,
 } from "@/lib/wishlist-session";
+import { isShopCheckoutEnabled } from "@/lib/order-mode";
+import { formatVariantWithUnit } from "@/lib/product-format";
 import { CatalogAppShell } from "./CatalogAppShell";
+import { OrderInquiryModal, type InquiryLine } from "./OrderInquiryModal";
 import { ProductThumb } from "./ProductThumb";
 
 type Props = {
@@ -69,6 +72,7 @@ function CartLineRow({
     product.unitPriceExclTax,
     product.taxRate
   );
+  const variantLine = formatVariantWithUnit(product);
 
   return (
     <li className="rounded-xl border border-mercury bg-porcelain p-4">
@@ -87,9 +91,9 @@ function CartLineRow({
           >
             {product.name}
           </Link>
-          {product.variant ? (
+          {variantLine ? (
             <p className="text-[13px] font-medium text-secondary">
-              {product.variant}
+              {variantLine}
             </p>
           ) : null}
           <p className="cart-line-meta">
@@ -161,6 +165,9 @@ export function WishlistCart({ catalog }: Props) {
   const [redirectFailed, setRedirectFailed] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [redirects, setRedirects] = useState<RedirectEntry[] | null>(null);
+  const [showInquiryModal, setShowInquiryModal] = useState(false);
+  const [inquirySubmitted, setInquirySubmitted] = useState(false);
+  const shopCheckoutEnabled = isShopCheckoutEnabled();
 
   const refreshLines = useCallback(() => {
     const nextLines = getCartLines(catalog.slug);
@@ -361,11 +368,65 @@ export function WishlistCart({ catalog }: Props) {
     }
   }, [catalog.slug, lines, products]);
 
+  const inquiryLines: InquiryLine[] = useMemo(
+    () =>
+      lines.map((line) => ({
+        sku: line.sku,
+        quantity: line.quantity,
+        product: products[line.sku] ?? line.product,
+      })),
+    [lines, products]
+  );
+
+  function handleCheckoutClick() {
+    if (shopCheckoutEnabled) {
+      void submitBasket();
+      return;
+    }
+    setShowInquiryModal(true);
+  }
+
+  function handleInquirySuccess() {
+    clearCart(catalog.slug);
+    setShowInquiryModal(false);
+    setInquirySubmitted(true);
+    refreshLines();
+  }
+
   if (!hydrated) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center text-sm text-quinary">
         Warenkorb wird geladen…
       </div>
+    );
+  }
+
+  if (inquirySubmitted) {
+    return (
+      <CatalogAppShell catalog={catalog} brandBadge="Fertig">
+        <div className="stage-card">
+          <div className="success-message">
+            <div className="success-icon" aria-hidden>
+              ✓
+            </div>
+            <h2 className="text-xl font-semibold text-accent-success-text">
+              Anfrage gesendet
+            </h2>
+            <p className="mt-2 text-sm text-accent-success-muted">
+              Vielen Dank — der Anbieter wurde per E-Mail über Ihre Artikelauswahl
+              informiert und kann sich bei Ihnen melden.
+            </p>
+          </div>
+          <div className="nav-buttons mt-4">
+            <Link href={`/c/${catalog.slug}/scan`} className="btn-primary">
+              Weiteren Artikel scannen
+            </Link>
+            <Link href={`/c/${catalog.slug}`} className="btn-secondary">
+              Zur Startseite
+            </Link>
+          </div>
+        </div>
+      </CatalogAppShell>
     );
   }
 
@@ -414,16 +475,26 @@ export function WishlistCart({ catalog }: Props) {
   }
 
   return (
-    <CatalogAppShell
-      catalog={catalog}
-      brandSubtitle="Warenkorb"
-      brandBadge={`${lines.length} Artikel`}
-      footer={
-        <Link href={`/c/${catalog.slug}/scan`} className="underline hover:text-secondary">
-          Weiteren Artikel scannen
-        </Link>
-      }
-    >
+    <>
+      {showInquiryModal ? (
+        <OrderInquiryModal
+          catalogSlug={catalog.slug}
+          lines={inquiryLines}
+          onClose={() => setShowInquiryModal(false)}
+          onSuccess={handleInquirySuccess}
+        />
+      ) : null}
+
+      <CatalogAppShell
+        catalog={catalog}
+        brandSubtitle="Warenkorb"
+        brandBadge={`${lines.length} Artikel`}
+        footer={
+          <Link href={`/c/${catalog.slug}/scan`} className="underline hover:text-secondary">
+            Weiteren Artikel scannen
+          </Link>
+        }
+      >
       <div className="stage-card">
         {lines.length === 0 ? (
           <div className="verteilseite text-center">
@@ -502,10 +573,14 @@ export function WishlistCart({ catalog }: Props) {
                 <button
                   type="button"
                   className="flex min-h-12 flex-1 items-center justify-center rounded-lg border border-primary bg-primary px-5 py-3 text-center text-sm font-semibold text-white transition hover:border-primary-hover hover:bg-primary-hover disabled:opacity-50"
-                  onClick={() => void submitBasket()}
+                  onClick={handleCheckoutClick}
                   disabled={submitting}
                 >
-                  {submitting ? "Wird übergeben…" : "Weiter zur Bestellung"}
+                  {submitting
+                    ? "Wird übergeben…"
+                    : shopCheckoutEnabled
+                      ? "Weiter zur Bestellung"
+                      : "Anfrage senden"}
                 </button>
               </div>
               {submitError && <p className="geo-warn mt-3">{submitError}</p>}
@@ -513,6 +588,7 @@ export function WishlistCart({ catalog }: Props) {
           </>
         )}
       </div>
-    </CatalogAppShell>
+      </CatalogAppShell>
+    </>
   );
 }
