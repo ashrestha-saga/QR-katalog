@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { Product } from "@/lib/mock-data";
 import {
   formatVariantWithUnit,
@@ -13,6 +13,7 @@ import type { VariantSelectionState } from "@/hooks/useVariantSelection";
 type Props = {
   product: Product;
   variantSelection?: VariantSelectionState | null;
+  children?: React.ReactNode;
 };
 
 type VariantSelectorProps = Pick<
@@ -24,45 +25,27 @@ type VariantSelectorProps = Pick<
   | "onSelectValue"
 >;
 
-function ProductThumbnail({ product }: Props) {
-  if (!product.thumbnailUrl) {
-    return (
-      <div className="product-thumb h-16 w-16 rounded-[14px] bg-white shadow-sm ring-1 ring-mercury md:h-[84px] md:w-[84px]">
-        📦
-      </div>
-    );
-  }
-
-  return (
-    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-[14px] border border-mercury bg-white shadow-sm md:h-[84px] md:w-[84px]">
-      <img
-        key={product.thumbnailUrl}
-        src={product.thumbnailUrl}
-        alt={`${product.name} Vorschaubild`}
-        className="h-full w-full object-contain p-2"
-      />
-    </div>
-  );
-}
-
-function ProductImageCarousel({ product }: Props) {
-  const images = product.imageUrls ?? [];
+function ProductImageCarousel({
+  product,
+  tall = false,
+}: {
+  product: Product;
+  tall?: boolean;
+}) {
+  const images =
+    product.imageUrls && product.imageUrls.length > 0
+      ? product.imageUrls
+      : product.thumbnailUrl
+        ? [product.thumbnailUrl]
+        : [];
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     setActiveIndex(0);
   }, [product.thumbnailUrl, product.imageUrls?.join("|")]);
 
-  if (images.length === 0) {
-    return (
-      <div className="flex h-64 w-full items-center justify-center rounded-[22px] border border-white/70 bg-gradient-to-br from-white to-porcelain text-6xl text-quinary shadow-inner md:h-[420px]">
-        📦
-      </div>
-    );
-  }
-
-  const activeImage = images[activeIndex] ?? images[0];
   const hasMultipleImages = images.length > 1;
+  const activeImage = images[activeIndex] ?? images[0];
 
   function goToPrevious() {
     setActiveIndex((current) =>
@@ -77,24 +60,46 @@ function ProductImageCarousel({ product }: Props) {
   }
 
   return (
-    <div className="w-full">
-      <div className="relative overflow-hidden rounded-[22px] border border-white/70 bg-gradient-to-br from-white via-white to-porcelain shadow-[0_18px_50px_rgba(10,22,40,0.10)]">
-        <img
-          key={activeImage}
-          src={activeImage}
-          alt={`${product.name} Produktbild ${activeIndex + 1}`}
-          className="h-64 w-full object-contain p-5 md:h-[420px] md:p-8"
-        />
+    <div
+      className={
+        tall ? "article-preview-card article-preview-card--tall" : "article-preview-card"
+      }
+    >
+      <div className="article-preview-header">
+        <span className="article-preview-label">Vorschau</span>
+        <span className="article-preview-live">
+          <span className="article-preview-live-dot" aria-hidden />
+          Live
+        </span>
+      </div>
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white/70 to-transparent" />
+      <div
+        className={
+          tall ? "article-preview-stage article-preview-stage--tall" : "article-preview-stage"
+        }
+      >
+        {activeImage ? (
+          <img
+            key={activeImage}
+            src={activeImage}
+            alt={`${product.name} Produktbild ${activeIndex + 1}`}
+            className={
+              tall ? "article-preview-image article-preview-image--tall" : "article-preview-image"
+            }
+          />
+        ) : (
+          <div className="article-preview-placeholder" aria-hidden>
+            📦
+          </div>
+        )}
 
-        {hasMultipleImages && (
+        {hasMultipleImages ? (
           <>
             <button
               type="button"
               onClick={goToPrevious}
               aria-label="Vorheriges Produktbild"
-              className="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-mercury bg-white/95 text-2xl font-semibold text-secondary shadow-[0_8px_24px_rgba(10,22,40,0.16)] transition hover:scale-105 hover:bg-white"
+              className="article-preview-nav article-preview-nav-prev"
             >
               ‹
             </button>
@@ -102,37 +107,57 @@ function ProductImageCarousel({ product }: Props) {
               type="button"
               onClick={goToNext}
               aria-label="Nächstes Produktbild"
-              className="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-mercury bg-white/95 text-2xl font-semibold text-secondary shadow-[0_8px_24px_rgba(10,22,40,0.16)] transition hover:scale-105 hover:bg-white"
+              className="article-preview-nav article-preview-nav-next"
             >
               ›
             </button>
           </>
-        )}
-
-        {hasMultipleImages && (
-          <div className="absolute bottom-3 right-3 rounded-full bg-secondary/80 px-3 py-1 text-xs font-medium text-white">
-            {activeIndex + 1} / {images.length}
-          </div>
-        )}
+        ) : null}
       </div>
 
-      {hasMultipleImages && (
-        <div className="mt-4 flex items-center justify-center gap-2">
+      {hasMultipleImages ? (
+        <div className="article-preview-dots">
           {images.map((image, index) => (
             <button
               key={image}
               type="button"
               onClick={() => setActiveIndex(index)}
               aria-label={`Produktbild ${index + 1} anzeigen`}
-              className={`h-2 rounded-full transition-all ${
+              className={
                 index === activeIndex
-                  ? "w-8 bg-accent-blue shadow-sm"
-                  : "w-2.5 bg-mercury hover:bg-quinary/40"
-              }`}
+                  ? "article-preview-dot article-preview-dot-active"
+                  : "article-preview-dot"
+              }
             />
           ))}
         </div>
-      )}
+      ) : null}
+    </div>
+  );
+}
+
+function ArticleProductCard({
+  product,
+  onOpenDetails,
+}: {
+  product: Product;
+  onOpenDetails: () => void;
+}) {
+  return (
+    <div className="article-product-card">
+      <ProductSideSummary
+        product={product}
+        showThumb={false}
+        compact
+        nameClassName="article-product-name"
+      />
+      <button
+        type="button"
+        className="article-product-details-link"
+        onClick={onOpenDetails}
+      >
+        Produktdetails ansehen
+      </button>
     </div>
   );
 }
@@ -165,58 +190,40 @@ function ProductDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end bg-secondary/55 p-0 backdrop-blur-sm md:items-center md:p-6"
+      className="inquiry-modal-overlay"
       role="dialog"
       aria-modal="true"
       aria-labelledby="product-detail-title"
       onMouseDown={onClose}
     >
       <div
-        className="max-h-[94vh] w-full overflow-y-auto rounded-t-[28px] border border-white/70 bg-white shadow-[0_-20px_60px_rgba(10,22,40,0.24)] md:mx-auto md:max-w-5xl md:rounded-[28px]"
+        className="inquiry-modal-panel md:max-w-3xl"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <div className="border-b border-mercury bg-gradient-to-br from-white via-white to-accent-blue-bg px-5 pb-5 pt-5 md:px-7 md:pb-6 md:pt-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <div className="mb-2 flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-quinary shadow-sm ring-1 ring-mercury">
-                  Artikel {product.sku}
-                </span>
-                {product.modelType && (
-                  <span className="rounded-full bg-accent-mint px-3 py-1 text-[11px] font-semibold text-secondary">
-                    {product.modelType}
-                  </span>
-                )}
-              </div>
-              <h2
-                id="product-detail-title"
-                className="text-2xl font-semibold leading-tight md:text-3xl"
-              >
-                {product.name}
-              </h2>
-              {variantLine && (
-                <p className="mt-1 text-sm font-medium text-secondary md:text-base">
-                  {variantLine}
-                </p>
-              )}
-              {shouldShowShortDescription(product) && (
-                <p className="mt-2 max-w-3xl text-sm leading-relaxed text-quinary md:text-base">
-                  {product.shortDescription}
-                </p>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Produktdetails schließen"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-2xl leading-none text-secondary shadow-sm ring-1 ring-mercury transition hover:scale-105 hover:bg-porcelain"
+        <header className="inquiry-modal-header">
+          <div className="min-w-0">
+            <p className="inquiry-modal-label">Produktdetails</p>
+            <h2
+              id="product-detail-title"
+              className="inquiry-modal-title"
             >
-              ×
-            </button>
+              {product.name}
+            </h2>
+            {variantLine ? (
+              <p className="inquiry-modal-intro">{variantLine}</p>
+            ) : null}
           </div>
-        </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Produktdetails schließen"
+            className="inquiry-modal-close"
+          >
+            ×
+          </button>
+        </header>
 
-        <div className="space-y-6 p-5 md:p-7">
+        <div className="inquiry-modal-body space-y-5">
           {variantSelection?.hasVariants ? (
             <VariantSelector
               labels={variantSelection.labels}
@@ -227,16 +234,12 @@ function ProductDetailModal({
             />
           ) : null}
 
-          <div className="rounded-[24px] bg-porcelain/70 p-3 md:p-4">
-            <ProductImageCarousel product={product} />
-          </div>
+          <ProductImageCarousel product={product} />
 
-          <div className="grid gap-3 text-sm text-secondary md:grid-cols-2">
+          <div className="grid gap-3 text-sm text-secondary">
             {shouldShowShortDescription(product) && (
-              <section className="rounded-[16px] border border-mercury bg-white p-4 shadow-sm md:col-span-2">
-                <h3 className="mb-1 text-sm font-semibold">
-                  Kurzbeschreibung
-                </h3>
+              <section className="rounded-xl border border-mercury bg-cart-line p-4">
+                <h3 className="mb-1 text-sm font-semibold">Kurzbeschreibung</h3>
                 <p className="leading-relaxed text-quinary">
                   {product.shortDescription}
                 </p>
@@ -244,10 +247,8 @@ function ProductDetailModal({
             )}
 
             {product.description && (
-              <section className="rounded-[16px] border border-mercury bg-white p-4 shadow-sm md:col-span-2">
-                <h3 className="mb-1 text-sm font-semibold">
-                  Beschreibung
-                </h3>
+              <section className="rounded-xl border border-mercury bg-cart-line p-4">
+                <h3 className="mb-1 text-sm font-semibold">Beschreibung</h3>
                 <p className="whitespace-pre-line leading-relaxed text-quinary">
                   {product.description}
                 </p>
@@ -255,33 +256,29 @@ function ProductDetailModal({
             )}
 
             {product.details && product.details !== product.description && (
-              <section className="rounded-[16px] border border-mercury bg-white p-4 shadow-sm">
+              <section className="rounded-xl border border-mercury bg-cart-line p-4">
                 <h3 className="mb-1 text-sm font-semibold">Details</h3>
                 <p className="leading-relaxed text-quinary">{product.details}</p>
               </section>
             )}
 
             {product.unitName && !product.variant ? (
-              <section className="rounded-[16px] border border-mercury bg-white p-4 shadow-sm">
+              <section className="rounded-xl border border-mercury bg-cart-line p-4">
                 <h3 className="mb-1 text-sm font-semibold">
                   Verpackungseinheit (VE)
                 </h3>
-                <p className="leading-relaxed text-quinary">
-                  {product.unitName}
-                </p>
+                <p className="leading-relaxed text-quinary">{product.unitName}</p>
               </section>
             ) : null}
 
             {product.categories && product.categories.length > 0 && (
-              <section className="rounded-[16px] border border-mercury bg-white p-4 shadow-sm">
-                <h3 className="mb-2 text-sm font-semibold">
-                  Kategorien
-                </h3>
+              <section className="rounded-xl border border-mercury bg-cart-line p-4">
+                <h3 className="mb-2 text-sm font-semibold">Kategorien</h3>
                 <div className="flex flex-wrap gap-2">
                   {product.categories.map((category) => (
                     <span
                       key={category}
-                      className="rounded-full bg-accent-blue-bg px-3 py-1 text-xs font-medium text-accent-blue"
+                      className="rounded-full bg-accent-mint px-3 py-1 text-xs font-medium text-primary"
                     >
                       {category}
                     </span>
@@ -291,7 +288,7 @@ function ProductDetailModal({
             )}
 
             {!hasMeta && (
-              <p className="rounded-[16px] border border-mercury bg-porcelain p-4 text-quinary">
+              <p className="rounded-xl border border-mercury bg-cart-line p-4 text-quinary">
                 Keine weiteren Produktdetails verfügbar.
               </p>
             )}
@@ -302,20 +299,12 @@ function ProductDetailModal({
   );
 }
 
-function ProductSummaryCard({ product }: Props) {
-  return (
-    <ProductSideSummary
-      product={product}
-      thumb={<ProductThumbnail product={product} />}
-      showEdition
-      showDeliveryScope
-      showDetailsHint
-    />
-  );
-}
-
-/** Phase 1 — article info only (no quantity, VAT, or totals) */
-export function ProductDetailStep({ product, variantSelection }: Props) {
+/** Phase 1 — article info + variant selection */
+export function ProductDetailStep({
+  product,
+  variantSelection,
+  children,
+}: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const selectorProps: VariantSelectorProps | null =
@@ -329,57 +318,49 @@ export function ProductDetailStep({ product, variantSelection }: Props) {
         }
       : null;
 
+  const hasVariants = variantSelection?.hasVariants ?? false;
+
   return (
     <>
-      {selectorProps ? (
-        <div className="mb-4 rounded-[16px] border border-mercury bg-white p-4 shadow-sm">
-          <h3 className="mb-3 text-sm font-semibold text-secondary">
-            Variante wählen
-          </h3>
-          <VariantSelector {...selectorProps} />
-        </div>
-      ) : null}
+      <div
+        className={
+          hasVariants
+            ? "article-step-layout"
+            : "article-step-layout article-step-layout--simple"
+        }
+      >
+        <div className="article-step-media">
+          <ProductImageCarousel product={product} tall={!hasVariants} />
 
-      {(product.thumbnailUrl || product.imageUrls?.length) ? (
-        <div className="mb-4 rounded-[16px] border border-mercury bg-white p-3 shadow-sm md:p-4">
-          <ProductImageCarousel
-            key={product.thumbnailUrl ?? product.sku}
-            product={product}
-          />
+          {hasVariants ? (
+            <ArticleProductCard
+              product={product}
+              onOpenDetails={() => setIsModalOpen(true)}
+            />
+          ) : null}
         </div>
-      ) : null}
 
-      <div className="product-card-mobile md:hidden">
-        <button
-          type="button"
-          className="w-full"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <ProductSummaryCard product={product} />
-        </button>
+        {selectorProps || children || !hasVariants ? (
+          <div className="article-step-config">
+            {!hasVariants ? (
+              <ArticleProductCard
+                product={product}
+                onOpenDetails={() => setIsModalOpen(true)}
+              />
+            ) : null}
+            {selectorProps ? <VariantSelector {...selectorProps} /> : null}
+            {children}
+          </div>
+        ) : null}
       </div>
 
-      <div className="verteilseite hidden md:block">
-        <button
-          type="button"
-          className="product-banner w-full text-left transition hover:border-accent-blue-light hover:bg-accent-blue-bg"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <ProductSummaryCard product={product} />
-        </button>
-      </div>
-
-      <p className="info-box-mobile mt-4 md:mt-0">
-        ℹ️ Im nächsten Schritt wählst du Menge und schließt die Bestellung ab.
-      </p>
-
-      {isModalOpen && (
+      {isModalOpen ? (
         <ProductDetailModal
           product={product}
           variantSelection={variantSelection}
           onClose={() => setIsModalOpen(false)}
         />
-      )}
+      ) : null}
     </>
   );
 }

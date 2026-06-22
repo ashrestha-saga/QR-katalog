@@ -52,6 +52,7 @@ export const SEMANTIC: ColorToken[] = [
   { cssVar: "color-info", env: "THEME_COLOR_INFO", fallback: "#03b4d6" }, // irisblue
   { cssVar: "color-light", env: "THEME_COLOR_LIGHT", fallback: "#f5f5f5" }, // wildsand
   { cssVar: "color-dark", env: "THEME_COLOR_DARK", fallback: "#195084" }, // chathamsblue
+  { cssVar: "color-cart-line", env: "THEME_COLOR_CART_LINE", fallback: "#f6f8f9" },
 ];
 
 /**

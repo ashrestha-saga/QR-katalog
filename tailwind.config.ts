@@ -49,6 +49,7 @@ const config: Config = {
         info: themeColor("info"),
         light: themeColor("light"),
         dark: themeColor("dark"),
+        "cart-line": themeColor("cart-line"),
         accent: {
           pink: themeColor("primary"),
           "pink-hover": themeColor("primary-hover"),

@@ -19,23 +19,23 @@ export function VariantSelector({
   onSelectValue,
 }: Props) {
   return (
-    <div className="mb-4 space-y-3">
+    <div className="article-variant-fields">
       {labels.map((label, index) => {
         const options = optionsByIndex[index] ?? [];
         const available = availableByIndex[index] ?? new Set(options);
         const selected = selectedValues[index] ?? "";
 
         return (
-          <div key={label}>
+          <div key={label} className="article-variant-field">
             <label
               htmlFor={`variant-select-${index}`}
-              className="product-label mb-1.5 block"
+              className="article-variant-label"
             >
               {label}
             </label>
             <select
               id={`variant-select-${index}`}
-              className="select-field"
+              className="select-field article-variant-select"
               value={selected}
               onChange={(event) => onSelectValue(index, event.target.value)}
             >

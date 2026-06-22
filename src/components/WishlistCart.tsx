@@ -17,7 +17,7 @@ import {
   type ConfiguredCartLine,
 } from "@/lib/wishlist-session";
 import { isShopCheckoutEnabled } from "@/lib/order-mode";
-import { formatVariantWithUnit } from "@/lib/product-format";
+import { shouldShowShortDescription } from "@/lib/product-format";
 import { CatalogAppShell } from "./CatalogAppShell";
 import { OrderInquiryModal, type InquiryLine } from "./OrderInquiryModal";
 import { ProductThumb } from "./ProductThumb";
@@ -30,6 +30,12 @@ type RedirectEntry = {
   label: string;
   url: string;
 };
+
+const SHOP_CHECKOUT_NOTE =
+  "Sobald Sie auf die Schaltfläche klicken, werden Sie direkt zum Warenkorb des Shopsystems weitergeleitet. Wir speichern keinerlei Informationen auf unserer Seite.";
+
+const INQUIRY_CHECKOUT_NOTE =
+  "Beim Klick öffnet sich ein Formular zur Anfrage per E-Mail an unser Service-Team. Ihre Angaben werden nur zur Bearbeitung der Anfrage versendet — wir speichern keine Informationen in dieser App.";
 
 function TrashIcon() {
   return (
@@ -53,6 +59,32 @@ function TrashIcon() {
   );
 }
 
+function ArrowRightIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M5 12h14" />
+      <path d="m13 6 6 6-6 6" />
+    </svg>
+  );
+}
+
+function formatArticleMeta(product: Product): string {
+  const unit = product.unitName?.trim();
+  return unit
+    ? `Art. Nr. ${product.sku} · VE: ${unit}`
+    : `Art. Nr. ${product.sku}`;
+}
+
 type CartLineRowProps = {
   catalog: Catalog;
   line: ConfiguredCartLine;
@@ -73,11 +105,13 @@ function CartLineRow({
     product.unitPriceExclTax,
     product.taxRate
   );
-  const variantLine = formatVariantWithUnit(product);
+  const variantLine =
+    product.variant?.trim() ||
+    (shouldShowShortDescription(product) ? product.shortDescription?.trim() : null);
 
   return (
-    <li className="rounded-xl border border-mercury bg-porcelain p-4">
-      <div className="flex gap-4">
+    <li className="cart-line-card">
+      <div className="cart-line-top">
         <div className="cart-line-thumb">
           <ProductThumb
             product={product}
@@ -93,66 +127,126 @@ function CartLineRow({
             {product.name}
           </Link>
           {variantLine ? (
-            <p className="text-[13px] font-medium text-secondary">
-              {variantLine}
-            </p>
+            <p className="cart-line-variant">{variantLine}</p>
           ) : null}
-          <p className="cart-line-meta">
-            Art. Nr. {product.sku}
-            {product.shortDescription ? ` · ${product.shortDescription}` : null}
-          </p>
-
-          <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
-            <div className="cart-line-actions">
-              <button
-                type="button"
-                className="cart-remove-btn"
-                onClick={() => onRemove(line.sku)}
-                aria-label={`${product.name} entfernen`}
-              >
-                <TrashIcon />
-              </button>
-              <div className="cart-qty-control">
-                <button
-                  type="button"
-                  className="cart-qty-btn"
-                  disabled={line.quantity <= 1}
-                  onClick={() => onQuantityChange(line.sku, line.quantity - 1)}
-                  aria-label="Menge verringern"
-                >
-                  −
-                </button>
-                <span className="cart-qty-value">{line.quantity}</span>
-                <button
-                  type="button"
-                  className="cart-qty-btn"
-                  disabled={line.quantity >= 99}
-                  onClick={() => onQuantityChange(line.sku, line.quantity + 1)}
-                  aria-label="Menge erhöhen"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            <div className="flex gap-6 text-right">
-              <div>
-                <span className="product-label block">Einzelpreis</span>
-                <span className="text-sm font-medium text-secondary">
-                  {formatEur(lineTotals.unitPriceExclTax)}
-                </span>
-              </div>
-              <div>
-                <span className="product-label block">Gesamtbetrag</span>
-                <span className="text-sm font-medium text-secondary">
-                  {formatEur(lineTotals.subtotalExclTax)}
-                </span>
-              </div>
-            </div>
-          </div>
+          <p className="cart-line-meta">{formatArticleMeta(product)}</p>
         </div>
       </div>
+
+      <div className="cart-line-bottom">
+        <div className="cart-qty-control">
+          <button
+            type="button"
+            className="cart-qty-btn"
+            disabled={line.quantity <= 1}
+            onClick={() => onQuantityChange(line.sku, line.quantity - 1)}
+            aria-label="Menge verringern"
+          >
+            −
+          </button>
+          <span className="cart-qty-value">{line.quantity}</span>
+          <button
+            type="button"
+            className="cart-qty-btn"
+            disabled={line.quantity >= 99}
+            onClick={() => onQuantityChange(line.sku, line.quantity + 1)}
+            aria-label="Menge erhöhen"
+          >
+            +
+          </button>
+        </div>
+
+        <div className="cart-line-pricing">
+          <span className="cart-line-unit-price">
+            à {formatEur(lineTotals.unitPriceExclTax)}
+          </span>
+          <span className="cart-line-total-price">
+            {formatEur(lineTotals.subtotalExclTax)}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          className="cart-remove-btn"
+          onClick={() => onRemove(line.sku)}
+          aria-label={`${product.name} entfernen`}
+        >
+          <TrashIcon />
+        </button>
+      </div>
     </li>
+  );
+}
+
+type CartSummaryProps = {
+  catalog: Catalog;
+  basketTotals: ReturnType<typeof calcBasketTotals>;
+  taxRateLabel: number;
+  shopCheckoutEnabled: boolean;
+  submitting: boolean;
+  submitError: string | null;
+  onCheckoutClick: () => void;
+};
+
+function CartSummary({
+  catalog,
+  basketTotals,
+  taxRateLabel,
+  shopCheckoutEnabled,
+  submitting,
+  submitError,
+  onCheckoutClick,
+}: CartSummaryProps) {
+  const checkoutLabel = shopCheckoutEnabled
+    ? "Weiter zur Bestellung"
+    : "Anfrage per E-Mail senden";
+
+  return (
+    <aside className="cart-sidebar" aria-label="Bestellzusammenfassung">
+      <div className="cart-summary-card">
+        <h2 className="cart-summary-title">Zusammenfassung</h2>
+
+        <div className="cart-summary-row">
+          <span>Summe Artikel (netto)</span>
+          <span>{formatEur(basketTotals.subtotalExclTax)}</span>
+        </div>
+        <div className="cart-summary-row">
+          <span>zzgl. {taxRateLabel} % MwSt.</span>
+          <span>{formatEur(basketTotals.taxAmount)}</span>
+        </div>
+
+        <div className="cart-summary-total">
+          <span>Gesamtbetrag</span>
+          <span>{formatEur(basketTotals.totalInclTax)}</span>
+        </div>
+      </div>
+
+      <div className="cart-actions-block">
+        <div className="cart-actions">
+          <Link
+            href={`/c/${catalog.slug}/scan`}
+            className="cart-btn-outline"
+          >
+            Weiteren Artikel scannen
+          </Link>
+          <button
+            type="button"
+            className="cart-btn-primary"
+            onClick={onCheckoutClick}
+            disabled={submitting}
+          >
+            {submitting ? "Wird übergeben…" : checkoutLabel}
+            {!submitting ? <ArrowRightIcon /> : null}
+          </button>
+        </div>
+
+        <p className="cart-checkout-note">
+          {shopCheckoutEnabled ? SHOP_CHECKOUT_NOTE : INQUIRY_CHECKOUT_NOTE}
+        </p>
+
+        {submitError ? <p className="geo-warn">{submitError}</p> : null}
+      </div>
+    </aside>
   );
 }
 
@@ -407,8 +501,8 @@ export function WishlistCart({ catalog }: Props) {
 
   if (inquirySubmitted) {
     return (
-      <CatalogAppShell catalog={catalog} brandBadge="Fertig">
-        <div className="stage-card">
+      <CatalogAppShell catalog={catalog} brandSubtitle="" brandBadge="" unifiedCard>
+        <div className="cart-page">
           <div className="success-message">
             <div className="success-icon" aria-hidden>
               ✓
@@ -417,15 +511,15 @@ export function WishlistCart({ catalog }: Props) {
               Anfrage gesendet
             </h2>
             <p className="mt-2 text-sm text-accent-success-muted">
-              Vielen Dank — der Anbieter wurde per E-Mail über Ihre Artikelauswahl
-              informiert und kann sich bei Ihnen melden.
+              Vielen Dank — Ihre Anfrage wurde per E-Mail an unser Service-Team
+              übermittelt. Wir speichern keine Informationen in dieser App.
             </p>
           </div>
-          <div className="nav-buttons mt-4">
-            <Link href={`/c/${catalog.slug}/scan`} className="btn-primary">
+          <div className="cart-actions mt-6">
+            <Link href={`/c/${catalog.slug}/scan`} className="cart-btn-primary">
               Weiteren Artikel scannen
             </Link>
-            <Link href={`/c/${catalog.slug}`} className="btn-secondary">
+            <Link href={`/c/${catalog.slug}`} className="cart-btn-outline">
               Zur Startseite
             </Link>
           </div>
@@ -437,21 +531,23 @@ export function WishlistCart({ catalog }: Props) {
   if (redirects) {
     const primaryRedirect = redirects[0];
     return (
-      <CatalogAppShell catalog={catalog} brandBadge="Fertig">
-        <div className="stage-card">
+      <CatalogAppShell catalog={catalog} brandSubtitle="" brandBadge="" unifiedCard>
+        <div className="cart-page">
           <div className="success-message">
             <div className="success-icon" aria-hidden>
               ✓
             </div>
             <h2 className="text-xl font-semibold text-accent-success-text">
-              Weiterleitung zur Bestellung
+              Weiterleitung zum Shopsystem
             </h2>
             <p className="mt-2 text-sm text-accent-success-muted">
               {redirects.length}{" "}
               {redirects.length === 1 ? "Bestellung" : "Bestellungen"} übergeben.
             </p>
             <p className="mt-2 text-sm text-quinary">
-              Du wirst jetzt direkt zum Shop weitergeleitet.
+              Sie werden jetzt direkt zum Warenkorb des Shopsystems
+              weitergeleitet. Wir speichern keinerlei Informationen auf unserer
+              Seite.
             </p>
             {isRedirecting && (
               <div className="mt-2 flex items-center justify-center gap-2 text-sm text-quinary">
@@ -468,7 +564,7 @@ export function WishlistCart({ catalog }: Props) {
                   rel="noopener noreferrer"
                   className="font-semibold text-accent-blue underline"
                 >
-                  URL manuell öffnen
+                  Shop manuell öffnen
                 </a>
               </p>
             ) : null}
@@ -491,107 +587,71 @@ export function WishlistCart({ catalog }: Props) {
 
       <CatalogAppShell
         catalog={catalog}
-        brandSubtitle="Warenkorb"
-        brandBadge={`${lines.length} Artikel`}
-        footer={
-          <Link href={`/c/${catalog.slug}/scan`} className="underline hover:text-secondary">
-            Weiteren Artikel scannen
-          </Link>
-        }
+        brandSubtitle=""
+        brandBadge=""
+        unifiedCard
       >
-      <div className="stage-card">
-        {lines.length === 0 ? (
-          <div className="verteilseite text-center">
-            <p className="text-4xl text-quinary" aria-hidden>
-              🛒
-            </p>
-            <p className="mt-3 text-sm text-quinary">Noch keine Artikel im Warenkorb.</p>
-            <Link
-              href={`/c/${catalog.slug}/scan`}
-              className="btn-primary mt-6 inline-block max-w-xs"
-            >
-              Ersten Artikel scannen
-            </Link>
-          </div>
-        ) : (
-          <>
-            <ul className="space-y-3">
-              {lines.map((line) => {
-                const product = products[line.sku] ?? line.product;
+        <div className="cart-page">
+          <p className="cart-page-label">Warenkorb</p>
+          <h1 className="cart-page-title">Dein Warenkorb</h1>
 
-                if (!product) {
-                  return (
-                    <li
-                      key={line.sku}
-                      className="rounded-xl border border-mercury bg-porcelain p-4"
-                    >
-                      <div className="product-label">Artikel {line.sku}</div>
-                      <p className="text-sm text-quinary">
-                        Artikeldaten werden geladen…
-                      </p>
-                    </li>
-                  );
-                }
-
-                return (
-                  <CartLineRow
-                    key={line.sku}
-                    catalog={catalog}
-                    line={line}
-                    product={product}
-                    onQuantityChange={updateQuantity}
-                    onRemove={removeLine}
-                  />
-                );
-              })}
-            </ul>
-
-            <div className="cart-summary mt-6" aria-label="Bestellzusammenfassung">
-              <h2 className="cart-summary-title">Zusammenfassung</h2>
-
-              <div className="cart-summary-row">
-                <span>Summe Artikel (netto)</span>
-                <span>{formatEur(basketTotals.subtotalExclTax)}</span>
-              </div>
-              <div className="cart-summary-row">
-                <span>zzgl. {taxRateLabel}% MwSt., Betrag:</span>
-                <span>{formatEur(basketTotals.taxAmount)}</span>
-              </div>
-              <div className="cart-summary-row">
-                <span>Summe Artikel (brutto):</span>
-                <span>{formatEur(basketTotals.totalInclTax)}</span>
-              </div>
-
-              <div className="cart-summary-total">
-                <span>Gesamtbetrag:</span>
-                <span>{formatEur(basketTotals.totalInclTax)}</span>
-              </div>
-
-              <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-                <Link
-                  href={`/c/${catalog.slug}/scan`}
-                  className="flex min-h-12 flex-1 items-center justify-center rounded-lg border border-primary bg-white px-5 py-3 text-center text-sm font-semibold text-primary transition hover:bg-porcelain"
-                >
-                  Weiteren Artikel scannen
-                </Link>
-                <button
-                  type="button"
-                  className="flex min-h-12 flex-1 items-center justify-center rounded-lg border border-primary bg-primary px-5 py-3 text-center text-sm font-semibold text-white transition hover:border-primary-hover hover:bg-primary-hover disabled:opacity-50"
-                  onClick={handleCheckoutClick}
-                  disabled={submitting}
-                >
-                  {submitting
-                    ? "Wird übergeben…"
-                    : shopCheckoutEnabled
-                      ? "Weiter zur Bestellung"
-                      : "Anfrage senden"}
-                </button>
-              </div>
-              {submitError && <p className="geo-warn mt-3">{submitError}</p>}
+          {lines.length === 0 ? (
+            <div className="cart-empty">
+              <p className="text-4xl text-quinary" aria-hidden>
+                🛒
+              </p>
+              <p className="mt-3 text-sm text-quinary">
+                Noch keine Artikel im Warenkorb.
+              </p>
+              <Link
+                href={`/c/${catalog.slug}/scan`}
+                className="cart-btn-primary mt-6 inline-flex max-w-xs"
+              >
+                Ersten Artikel scannen
+              </Link>
             </div>
-          </>
-        )}
-      </div>
+          ) : (
+            <div className="cart-page-layout">
+              <ul className="cart-lines-list">
+                {lines.map((line) => {
+                  const product = products[line.sku] ?? line.product;
+
+                  if (!product) {
+                    return (
+                      <li key={line.sku} className="cart-line-card">
+                        <div className="product-label">Artikel {line.sku}</div>
+                        <p className="text-sm text-quinary">
+                          Artikeldaten werden geladen…
+                        </p>
+                      </li>
+                    );
+                  }
+
+                  return (
+                    <CartLineRow
+                      key={line.sku}
+                      catalog={catalog}
+                      line={line}
+                      product={product}
+                      onQuantityChange={updateQuantity}
+                      onRemove={removeLine}
+                    />
+                  );
+                })}
+              </ul>
+
+              <CartSummary
+                catalog={catalog}
+                basketTotals={basketTotals}
+                taxRateLabel={taxRateLabel}
+                shopCheckoutEnabled={shopCheckoutEnabled}
+                submitting={submitting}
+                submitError={submitError}
+                onCheckoutClick={handleCheckoutClick}
+              />
+            </div>
+          )}
+        </div>
       </CatalogAppShell>
     </>
   );

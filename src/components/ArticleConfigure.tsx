@@ -7,7 +7,6 @@ import {
   setCatalogSession,
 } from "@/lib/catalog-session";
 import type { Product } from "@/lib/mock-data";
-import { WIZARD_ORDER_STEP } from "@/lib/wizard-config";
 import {
   getCartLine,
   upsertCartLine,
@@ -32,9 +31,8 @@ export function ArticleConfigure({ catalog, product, editCartSku }: Props) {
     setCatalogSession(catalog.slug);
     markArticleScanned(product.sku);
 
-    const existingLine = editCartSku
-      ? getCartLine(catalog.slug, editCartSku) ?? null
-      : null;
+    const lineSku = editCartSku ?? product.sku;
+    const existingLine = getCartLine(catalog.slug, lineSku) ?? null;
     setExisting(existingLine);
     setShowDuplicateWarning(Boolean(existingLine));
     setHydrated(true);
@@ -43,10 +41,9 @@ export function ArticleConfigure({ catalog, product, editCartSku }: Props) {
   return (
     <CatalogAppShell
       catalog={catalog}
-      brandSubtitle={`Artikel ${product.sku} ${
-        existing ? "bearbeiten" : "konfigurieren"
-      }`}
-      brandBadge={`Schritt 1–${WIZARD_ORDER_STEP}`}
+      brandSubtitle=""
+      brandBadge=""
+      unifiedCard
     >
       {!hydrated ? (
         <div className="flex min-h-[35vh] items-center justify-center text-sm text-quinary">
@@ -54,23 +51,39 @@ export function ArticleConfigure({ catalog, product, editCartSku }: Props) {
         </div>
       ) : (
         <>
-          {existing && showDuplicateWarning && (
-            <div className="geo-warn mb-4">
-              <div className="flex items-start justify-between gap-3">
+          {existing && showDuplicateWarning ? (
+            <div className="article-cart-edit-notice mb-5" role="status">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+                className="shrink-0 text-primary"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 16v-4" />
+                <path d="M12 8h.01" />
+              </svg>
+              <div className="min-w-0 flex-1">
                 <p>
-                  Dieser Warenkorb-Eintrag wird bearbeitet. Beim Speichern wird
-                  die Menge für diese Variante aktualisiert.
+                  Dieser Artikel ist bereits im Warenkorb ({existing.quantity}×).
+                  Beim Speichern wird der bestehende Eintrag bearbeitet.
                 </p>
-                <button
-                  type="button"
-                  className="shrink-0 text-sm font-semibold text-secondary underline"
-                  onClick={() => setShowDuplicateWarning(false)}
-                >
-                  OK
-                </button>
               </div>
+              <button
+                type="button"
+                className="shrink-0 text-sm font-semibold text-primary hover:underline"
+                onClick={() => setShowDuplicateWarning(false)}
+              >
+                OK
+              </button>
             </div>
-          )}
+          ) : null}
 
           <RoutingWizard
             product={product}

@@ -9,35 +9,43 @@ import { ProductThumb } from "./ProductThumb";
 type Props = {
   product: Product;
   thumb?: ReactNode;
+  showThumb?: boolean;
   showEdition?: boolean;
   showDetailsHint?: boolean;
   showDeliveryScope?: boolean;
   nameClassName?: string;
+  compact?: boolean;
 };
 
 export function ProductSideSummary({
   product,
   thumb,
+  showThumb = true,
   showEdition = false,
   showDetailsHint = false,
   showDeliveryScope = false,
   nameClassName = "text-[15px] font-semibold text-primary md:text-base",
+  compact = false,
 }: Props) {
   const variantLine = formatVariantWithUnit(product);
 
   return (
-    <div className="flex items-center gap-3 text-left">
-      {thumb ?? <ProductThumb product={product} />}
+    <div
+      className={
+        compact
+          ? "min-w-0 text-left"
+          : "flex items-center gap-3 text-left"
+      }
+    >
+      {showThumb ? thumb ?? <ProductThumb product={product} /> : null}
       <div className="min-w-0 flex-1">
-        <div className="product-label">Artikel {product.sku}</div>
+        <div className="article-product-sku">Artikel {product.sku}</div>
         <div className={nameClassName}>{product.name}</div>
         {variantLine ? (
-          <div className="mt-0.5 text-[13px] font-medium text-secondary md:text-sm">
-            {variantLine}
-          </div>
+          <div className="article-product-spec">{variantLine}</div>
         ) : null}
         {shouldShowShortDescription(product) ? (
-          <p className="mt-1 line-clamp-2 text-[13px] leading-snug text-quinary md:text-sm">
+          <p className="article-product-spec mt-1">
             {product.shortDescription}
           </p>
         ) : null}
