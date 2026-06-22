@@ -18,6 +18,7 @@ import { setHaendlerCookie } from "@/lib/cookies";
 import { DEFAULT_CATALOG_SLUG } from "@/lib/catalog-constants";
 import { isShopCheckoutEnabled } from "@/lib/order-mode";
 import { useGeo } from "@/hooks/useGeo";
+import { useVariantSelection } from "@/hooks/useVariantSelection";
 import type { ArticleConfiguration } from "@/lib/wishlist-session";
 import {
   WIZARD_ACTIVE_STEPS,
@@ -95,6 +96,17 @@ export function RoutingWizard({
   const shopCheckoutEnabled = isShopCheckoutEnabled();
   const resolvedCatalogSlug = catalogSlug?.trim() || DEFAULT_CATALOG_SLUG;
 
+  const initialVariantArtnum =
+    initialSelection?.product?.sku &&
+    initialSelection.product.sku !== product.sku
+      ? initialSelection.product.sku
+      : undefined;
+
+  const variantSelection = useVariantSelection(product, { initialVariantArtnum });
+  const displayProduct = variantSelection.displayProduct;
+  /** Variant oxartnum when configured, otherwise parent article SKU */
+  const cartSku = displayProduct.sku;
+
   const { geo, loading: geoLoading, error: geoError, fetchGeo } = useGeo(false);
 
   const recommendedId = geo?.recommended_haendler ?? null;
@@ -104,16 +116,16 @@ export function RoutingWizard({
 
   const lineTotals = calcLineTotals(
     quantity,
-    product.unitPriceExclTax,
-    product.taxRate
+    displayProduct.unitPriceExclTax,
+    displayProduct.taxRate
   );
 
   const forwardUrl = useCallback(() => {
     if (WIZARD_HAENDLER_STEP_ENABLED) {
-      return buildTargetUrl(selectedHaendler, product.sku, quantity);
+      return buildTargetUrl(selectedHaendler, displayProduct.sku, quantity);
     }
-    return buildProductForwardUrl(product.sku, quantity, catalogSlug);
-  }, [selectedHaendler, product.sku, quantity, catalogSlug]);
+    return buildProductForwardUrl(displayProduct.sku, quantity, catalogSlug);
+  }, [selectedHaendler, displayProduct.sku, quantity, catalogSlug]);
 
   useEffect(() => {
     if (!WIZARD_HAENDLER_STEP_ENABLED || !WIZARD_GEO_STEP_ENABLED) return;
@@ -166,9 +178,9 @@ export function RoutingWizard({
   const finish = useCallback(() => {
     if (wishlistMode && onSaveToCart) {
       const config: ArticleConfiguration = {
-        sku: product.sku,
+        sku: cartSku,
         quantity,
-        product,
+        product: displayProduct,
       };
       if (WIZARD_HAENDLER_STEP_ENABLED) {
         if (remember) setHaendlerCookie(selectedHaendler);
@@ -197,7 +209,8 @@ export function RoutingWizard({
     forwardUrl,
     wishlistMode,
     onSaveToCart,
-    product,
+    cartSku,
+    displayProduct,
     quantity,
     remember,
     selectedHaendler,
@@ -228,7 +241,7 @@ export function RoutingWizard({
               Artikel im Warenkorb
             </h2>
             <p className="mt-2 text-sm text-accent-success-muted">
-              <strong>{product.name}</strong> · {quantity}×
+              <strong>{displayProduct.name}</strong> · {quantity}×
               {WIZARD_HAENDLER_STEP_ENABLED && selectedHaendlerEntity ? (
                 <>
                   {" "}
@@ -258,7 +271,7 @@ export function RoutingWizard({
               Anfrage gesendet
             </h2>
             <p className="mt-2 text-sm text-accent-success-muted">
-              <strong>{product.name}</strong> · {quantity}×
+              <strong>{displayProduct.name}</strong> · {quantity}×
             </p>
             <p className="mt-2 text-sm text-quinary">
               Der Anbieter wurde per E-Mail informiert und kann sich bei Ihnen
@@ -297,10 +310,10 @@ export function RoutingWizard({
               {WIZARD_HAENDLER_STEP_ENABLED && selectedHaendlerEntity ? (
                 <>
                   Warenkorb wurde an <strong>{selectedHaendlerEntity.name}</strong>{" "}
-                  übergeben (Demo).
+                  übergeben.
                 </>
               ) : (
-                <>Deine Artikel wurden zur Bestellung übergeben (Demo).</>
+                <>Deine Artikel wurden zur Bestellung übergeben.</>
               )}
             </p>
           </div>
@@ -326,7 +339,7 @@ export function RoutingWizard({
               rel="noopener noreferrer"
               className="btn-primary"
             >
-              Zur Bestellung (Demo)
+              Zur Bestellung
             </a>
             <Link href="/" className="btn-secondary">
               Zur Startseite
@@ -341,7 +354,7 @@ export function RoutingWizard({
           {showInquiryModal ? (
             <OrderInquiryModal
               catalogSlug={resolvedCatalogSlug}
-              lines={[{ sku: product.sku, quantity, product }]}
+              lines={[{ sku: displayProduct.sku, quantity, product: displayProduct }]}
               onClose={() => setShowInquiryModal(false)}
               onSuccess={handleInquirySuccess}
             />
@@ -355,7 +368,7 @@ export function RoutingWizard({
         {showInquiryModal ? (
           <OrderInquiryModal
             catalogSlug={resolvedCatalogSlug}
-            lines={[{ sku: product.sku, quantity, product }]}
+            lines={[{ sku: displayProduct.sku, quantity, product: displayProduct }]}
             onClose={() => setShowInquiryModal(false)}
             onSuccess={handleInquirySuccess}
           />
@@ -382,11 +395,15 @@ export function RoutingWizard({
 
         {step === 1 && (
           <>
-            <ProductDetailStep product={product} />
+            <ProductDetailStep
+              product={displayProduct}
+              variantSelection={variantSelection}
+            />
             <div className="nav-buttons">
               <button
                 type="button"
                 className="btn-primary"
+                disabled={!variantSelection.isVariantSelectionComplete}
                 onClick={() =>
                   setStep(WIZARD_DEALER_STEP ?? WIZARD_ORDER_STEP)
                 }
@@ -395,6 +412,12 @@ export function RoutingWizard({
                 <span className="hidden md:inline">Weiter zur Bestellung →</span>
               </button>
             </div>
+            {!variantSelection.isVariantSelectionComplete &&
+            variantSelection.hasVariants ? (
+              <p className="mt-3 text-center text-sm text-quinary">
+                Bitte wähle alle Varianten aus, um fortzufahren.
+              </p>
+            ) : null}
           </>
         )}
 
@@ -442,15 +465,15 @@ export function RoutingWizard({
             )}
 
             <div className="product-card-mobile mb-4 md:hidden">
-              <ProductSideSummary product={product} />
+              <ProductSideSummary product={displayProduct} />
             </div>
 
             <div className="product-banner mb-4 hidden md:flex">
               <ProductSideSummary
-                product={product}
+                product={displayProduct}
                 thumb={
                   <ProductThumb
-                    product={product}
+                    product={displayProduct}
                     className="h-[60px] w-[60px] rounded-lg"
                   />
                 }
@@ -597,7 +620,7 @@ export function RoutingWizard({
       {!wishlistMode && (
         <p className="app-footer">
           <Link href="/" className="underline hover:text-secondary">
-            Weitere Demos
+            Weitere Artikel scannen
           </Link>
         </p>
       )}
@@ -610,7 +633,7 @@ export function RoutingWizard({
         {showInquiryModal ? (
           <OrderInquiryModal
             catalogSlug={resolvedCatalogSlug}
-            lines={[{ sku: product.sku, quantity, product }]}
+            lines={[{ sku: displayProduct.sku, quantity, product: displayProduct }]}
             onClose={() => setShowInquiryModal(false)}
             onSuccess={handleInquirySuccess}
           />
@@ -625,7 +648,7 @@ export function RoutingWizard({
       {showInquiryModal ? (
         <OrderInquiryModal
           catalogSlug={resolvedCatalogSlug}
-          lines={[{ sku: product.sku, quantity, product }]}
+          lines={[{ sku: displayProduct.sku, quantity, product: displayProduct }]}
           onClose={() => setShowInquiryModal(false)}
           onSuccess={handleInquirySuccess}
         />

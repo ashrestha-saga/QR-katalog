@@ -239,7 +239,7 @@ export function OrderInquiryModal({
                         <p className="text-xs font-medium text-secondary">{spec}</p>
                       ) : null}
                       <p className="text-xs text-quinary">
-                        Art. {line.sku} · Menge {line.quantity}
+                        Art. {product?.sku ?? line.sku} · Menge {line.quantity}
                       </p>
                     </div>
                     {totals ? (

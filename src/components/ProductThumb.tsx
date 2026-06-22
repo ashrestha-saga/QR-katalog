@@ -24,6 +24,7 @@ export function ProductThumb({
   return (
     <div className={baseClassName}>
       <img
+        key={product.thumbnailUrl}
         src={product.thumbnailUrl}
         alt={`${product.name} Vorschaubild`}
         className={`h-full w-full object-contain ${imageClassName}`}

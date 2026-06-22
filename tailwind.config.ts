@@ -74,6 +74,10 @@ const config: Config = {
       },
       boxShadow: {
         card: "0 1px 3px rgba(10, 22, 40, 0.06)",
+        stage:
+          "0 4px 6px rgba(10, 22, 40, 0.04), 0 16px 40px rgba(10, 22, 40, 0.08)",
+        "btn-primary":
+          "0 4px 14px rgba(10, 22, 40, 0.12), 0 2px 6px rgba(36, 189, 176, 0.28)",
       },
       borderRadius: {
         stage: "16px",

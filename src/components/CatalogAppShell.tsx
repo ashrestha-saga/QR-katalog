@@ -11,6 +11,7 @@ type Props = {
   brandBadge?: string;
   footer?: ReactNode;
   containerClassName?: string;
+  unifiedCard?: boolean;
 };
 
 export function CatalogAppShell({
@@ -20,6 +21,7 @@ export function CatalogAppShell({
   brandBadge,
   footer,
   containerClassName,
+  unifiedCard = false,
 }: Props) {
   const cartHref = `/c/${catalog.slug}/cart`;
 
@@ -32,6 +34,7 @@ export function CatalogAppShell({
       cartHref={cartHref}
       footer={footer}
       containerClassName={containerClassName}
+      unifiedCard={unifiedCard}
     >
       {children}
     </AppShell>

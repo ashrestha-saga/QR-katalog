@@ -19,9 +19,11 @@ import { RoutingWizard } from "./RoutingWizard";
 type Props = {
   catalog: Catalog;
   product: Product;
+  /** Cart line SKU when editing an existing entry from the Warenkorb */
+  editCartSku?: string;
 };
 
-export function ArticleConfigure({ catalog, product }: Props) {
+export function ArticleConfigure({ catalog, product, editCartSku }: Props) {
   const [existing, setExisting] = useState<ConfiguredCartLine | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
@@ -30,11 +32,13 @@ export function ArticleConfigure({ catalog, product }: Props) {
     setCatalogSession(catalog.slug);
     markArticleScanned(product.sku);
 
-    const existingLine = getCartLine(catalog.slug, product.sku) ?? null;
+    const existingLine = editCartSku
+      ? getCartLine(catalog.slug, editCartSku) ?? null
+      : null;
     setExisting(existingLine);
     setShowDuplicateWarning(Boolean(existingLine));
     setHydrated(true);
-  }, [catalog.slug, product.sku]);
+  }, [catalog.slug, product.sku, editCartSku]);
 
   return (
     <CatalogAppShell
@@ -54,9 +58,8 @@ export function ArticleConfigure({ catalog, product }: Props) {
             <div className="geo-warn mb-4">
               <div className="flex items-start justify-between gap-3">
                 <p>
-                  Dieser Artikel ist bereits im Warenkorb. Du bearbeitest jetzt
-                  den vorhandenen Eintrag. Beim Speichern wird die Menge im
-                  Warenkorb aktualisiert.
+                  Dieser Warenkorb-Eintrag wird bearbeitet. Beim Speichern wird
+                  die Menge für diese Variante aktualisiert.
                 </p>
                 <button
                   type="button"

@@ -7,6 +7,7 @@ type Props = {
   badge?: string;
   cartCatalogSlug?: string;
   cartHref?: string;
+  attached?: boolean;
 };
 
 export function BrandHeader({
@@ -14,11 +15,12 @@ export function BrandHeader({
   badge = "Prototype",
   cartCatalogSlug,
   cartHref,
+  attached = false,
 }: Props) {
   const showCart = Boolean(cartCatalogSlug && cartHref);
 
   return (
-    <header className="brand-header">
+    <header className={attached ? "brand-header-attached" : "brand-header"}>
       <Image
         src="/logo/Med Sales Logo.svg"
         alt="Med Sales"
@@ -27,11 +29,13 @@ export function BrandHeader({
         className="h-9 w-auto shrink-0"
         priority
       />
-      <div className="min-w-0 flex-1">
-        {subtitle ? (
+      {!attached && subtitle ? (
+        <div className="min-w-0 flex-1">
           <div className="text-center text-[13px] text-quinary">{subtitle}</div>
-        ) : null}
-      </div>
+        </div>
+      ) : (
+        <div className="min-w-0 flex-1" aria-hidden />
+      )}
       <div className="brand-header-actions">
         {showCart ? (
           <CartIconButton catalogSlug={cartCatalogSlug!} href={cartHref!} />

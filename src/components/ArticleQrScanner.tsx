@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Catalog } from "@/lib/catalog";
@@ -12,6 +11,7 @@ import { CatalogAppShell } from "./CatalogAppShell";
 
 const READER_ID = "article-qr-reader";
 const SCAN_COOLDOWN_MS = 2000;
+const EXAMPLE_SKUS = ["VA-170520", "12345", "67890"];
 
 type ScanStatus = "idle" | "starting" | "scanning";
 
@@ -31,6 +31,10 @@ export function ArticleQrScanner({ catalog }: Props) {
   const [manualError, setManualError] = useState<string | null>(null);
   const [manualSku, setManualSku] = useState("");
   const [lookupLoading, setLookupLoading] = useState(false);
+
+  const catalogLabel = catalog.edition
+    ? `${catalog.title} · Edition ${catalog.edition}`
+    : catalog.title;
 
   const clearReaderElement = useCallback(() => {
     const el = document.getElementById(READER_ID);
@@ -185,85 +189,216 @@ export function ArticleQrScanner({ catalog }: Props) {
   return (
     <CatalogAppShell
       catalog={catalog}
-      brandSubtitle="Artikel-QR scannen"
-      brandBadge="Scanner"
-      footer={
-        <Link href={`/c/${catalog.slug}`} className="underline hover:text-secondary">
-          Zurück zum Katalog
-        </Link>
-      }
+      brandSubtitle=""
+      brandBadge=""
+      unifiedCard
     >
-      <div className="stage-card">
-        <p className="step-description">
-          Scanne den QR-Code neben dem Produkt. Du siehst die Artikeldetails und
-          gibst danach Menge und Bestellung an, bevor du einen weiteren Artikel
-          scannen kannst.
+      <div className="scan-page">
+        <p className="scan-catalog-label">{catalogLabel}</p>
+        <h1 className="scan-page-title">Artikel aus dem Katalog laden</h1>
+        <p className="scan-page-description">
+          Scanne den QR-Code neben dem Produkt – oder gib die Bestellnummer
+          direkt ein. Beide Wege führen zu denselben Artikeldetails.
         </p>
 
-        <div
-          id={READER_ID}
-          className={`overflow-hidden rounded-xl border border-mercury bg-black ${
-            status === "scanning" ? "min-h-[280px]" : "min-h-0"
-          }`}
-        />
+        <div className="scan-options">
+          <section className="scan-option-card scan-option-card-qr" aria-label="QR-Code scannen">
+            <div className="scan-option-header">
+              <div className="scan-option-icon" aria-hidden>
+                <QrCodeIcon />
+              </div>
+              <div className="min-w-0">
+                <h2 className="scan-option-title">QR-Code scannen</h2>
+                <p className="scan-option-subtitle">
+                  Empfohlen – Artikel-QR direkt aus dem Printkatalog erfassen.
+                </p>
+              </div>
+            </div>
 
-        {status !== "scanning" && (
-          <button
-            type="button"
-            className="btn-primary mt-4"
-            onClick={() => void startScanner()}
-            disabled={status === "starting"}
-          >
-            {status === "starting" ? "Kamera startet…" : "Kamera öffnen"}
-          </button>
-        )}
-
-        {status === "scanning" && (
-          <button
-            type="button"
-            className="btn-secondary mt-3"
-            onClick={() => void stopScanner()}
-          >
-            Scanner stoppen
-          </button>
-        )}
-
-        {cameraError && <p className="geo-warn mt-3">{cameraError}</p>}
-
-        <div className="verteilseite mt-6">
-          <p className="text-sm font-medium text-secondary">Manuelle Eingabe (Demo)</p>
-          <p className="mt-1 text-xs text-quinary">
-            z. B. 12345, 67890, 23456, 34567
-          </p>
-          <form
-            className="mt-3 flex gap-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              submitManual();
-            }}
-          >
-            <input
-              type="text"
-              value={manualSku}
-              onChange={(e) => {
-                setManualSku(e.target.value);
-                if (manualError) setManualError(null);
-              }}
-              placeholder="Artikelnummer"
-              className="input-field flex-1"
-              autoComplete="off"
+            <div
+              id={READER_ID}
+              className={`scan-reader ${
+                status === "scanning" ? "scan-reader-active" : ""
+              }`}
             />
-            <button
-              type="submit"
-              className="btn-primary btn-inline shrink-0"
-              disabled={lookupLoading}
+
+            {status !== "scanning" ? (
+              <button
+                type="button"
+                className="btn-primary scan-camera-btn"
+                onClick={() => void startScanner()}
+                disabled={status === "starting"}
+              >
+                <CameraIcon />
+                {status === "starting" ? "Kamera startet…" : "Kamera öffnen"}
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => void stopScanner()}
+              >
+                Scanner stoppen
+              </button>
+            )}
+
+            {cameraError ? <p className="geo-warn mt-3">{cameraError}</p> : null}
+          </section>
+
+          <div className="scan-options-divider" aria-hidden>
+            <span>oder</span>
+          </div>
+
+          <section
+            className="scan-option-card scan-option-card-manual"
+            aria-label="Bestellnummer eingeben"
+          >
+            <div className="scan-option-header">
+              <div className="scan-option-icon" aria-hidden>
+                <ArticleListIcon />
+              </div>
+              <div className="min-w-0">
+                <h2 className="scan-option-title">Bestellnummer eingeben</h2>
+                <p className="scan-option-subtitle">
+                  Du kennst die Artikel-Nr.? Direkt eintippen – ohne Scan.
+                </p>
+              </div>
+            </div>
+
+            <form
+              className="scan-manual-form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                submitManual();
+              }}
             >
-              {lookupLoading ? "Lädt…" : "Konfigurieren"}
-            </button>
-          </form>
-          {manualError && <p className="geo-warn mt-3">{manualError}</p>}
+              <label className="scan-manual-label" htmlFor="manual-sku">
+                Artikelnummer
+              </label>
+              <div className="scan-manual-row">
+                <input
+                  id="manual-sku"
+                  type="text"
+                  value={manualSku}
+                  onChange={(e) => {
+                    setManualSku(e.target.value);
+                    if (manualError) setManualError(null);
+                  }}
+                  placeholder="z. B. VA-170520"
+                  className="input-field"
+                  autoComplete="off"
+                />
+                <button
+                  type="submit"
+                  className="btn-primary btn-inline scan-submit-btn"
+                  disabled={lookupLoading}
+                >
+                  {lookupLoading ? "Lädt…" : "Anzeigen"}
+                </button>
+              </div>
+            </form>
+
+            <div className="scan-examples">
+              <span className="scan-examples-label">Beispiele:</span>
+              <div className="scan-example-pills">
+                {EXAMPLE_SKUS.map((sku) => (
+                  <button
+                    key={sku}
+                    type="button"
+                    className="scan-example-pill"
+                    onClick={() => {
+                      setManualSku(sku);
+                      if (manualError) setManualError(null);
+                    }}
+                  >
+                    {sku}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {manualError ? <p className="geo-warn mt-3">{manualError}</p> : null}
+          </section>
+        </div>
+
+        <div className="scan-info-bar">
+          <InfoIcon />
+          <p>
+            QR beschädigt oder nicht lesbar? Nutze einfach die Bestellnummer aus
+            dem Katalog – das Ergebnis ist identisch.
+          </p>
         </div>
       </div>
     </CatalogAppShell>
+  );
+}
+
+function QrCodeIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm13-2h3v2h-3v-2zm-3 0h2v2h-2v-2zm3 3h2v2h-2v-2zm-3 0h3v2h-3v-2zm3 3h2v2h-2v-2zm-3 0h3v3h-3v-3z" />
+    </svg>
+  );
+}
+
+function ArticleListIcon() {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M8 6h13" />
+      <path d="M8 12h13" />
+      <path d="M8 18h13" />
+      <path d="M3 6h.01" />
+      <path d="M3 12h.01" />
+      <path d="M3 18h.01" />
+    </svg>
+  );
+}
+
+function CameraIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M4 7h3l2-3h6l2 3h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </svg>
+  );
+}
+
+function InfoIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 10v6" />
+      <path d="M12 7h.01" />
+    </svg>
   );
 }

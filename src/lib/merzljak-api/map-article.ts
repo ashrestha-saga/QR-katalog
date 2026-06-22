@@ -1,4 +1,4 @@
-import type { Product } from "@/lib/mock-data";
+import type { OxidVariantRecord, Product } from "@/lib/mock-data";
 import { getMerzljakImageBaseUrl } from "./config";
 
 type OxidArticleRecord = Record<string, unknown>;
@@ -89,6 +89,49 @@ function getCategoryNames(record: OxidArticleRecord): string[] | undefined {
   return names.size > 0 ? [...names] : undefined;
 }
 
+function mapVariantRecord(record: OxidArticleRecord): OxidVariantRecord | null {
+  const oxartnum = pickString(record, ["oxartnum", "OXARTNUM"]);
+  const oxvarselect = pickString(record, ["oxvarselect", "OXVARSELECT"]);
+  const oxid = pickString(record, ["oxid", "OXID"]);
+  const oxtitle = pickString(record, ["oxtitle", "OXTITLE"]);
+  const oxshortdesc = pickString(record, ["oxshortdesc", "OXSHORTDESC"]) ?? "";
+  const oxprice = pickString(record, ["oxprice", "OXPRICE"]) ?? "0";
+  const oxpic1 = pickString(record, ["oxpic1", "OXPIC1"]) ?? "";
+  const oxstock = pickNumber(record, ["oxstock", "OXSTOCK"]) ?? -1;
+
+  if (!oxartnum || !oxvarselect || !oxid || !oxtitle) return null;
+
+  const imageUrls = getImageUrls(record);
+
+  return {
+    oxid,
+    oxartnum,
+    oxtitle,
+    oxshortdesc,
+    oxprice,
+    oxpic1,
+    oxstock,
+    oxvarselect,
+    ...(imageUrls[0] ? { thumbnailUrl: imageUrls[0] } : {}),
+    ...(imageUrls.length > 0 ? { imageUrls } : {}),
+  };
+}
+
+function mapVariants(record: OxidArticleRecord): OxidVariantRecord[] | undefined {
+  const raw = record.variants;
+  if (!Array.isArray(raw) || raw.length === 0) return undefined;
+
+  const variants = raw
+    .filter(
+      (item): item is OxidArticleRecord =>
+        item !== null && typeof item === "object" && !Array.isArray(item)
+    )
+    .map(mapVariantRecord)
+    .filter((variant): variant is OxidVariantRecord => variant !== null);
+
+  return variants.length > 0 ? variants : undefined;
+}
+
 /** Map OXID article API payload → catalog Product */
 export function mapOxidArticleToProduct(
   record: OxidArticleRecord,
@@ -143,6 +186,8 @@ export function mapOxidArticleToProduct(
     htmlToText(pickString(record, ["oxlongdesc", "mwvfeature", "description"])) ??
     htmlToText(details);
   const categories = getCategoryNames(record);
+  const oxvarname = pickString(record, ["oxvarname", "OXVARNAME"]);
+  const variants = mapVariants(record);
 
   return {
     sku,
@@ -155,6 +200,8 @@ export function mapOxidArticleToProduct(
     ...(deliveryScope ? { deliveryScope } : {}),
     ...(unitName ? { unitName } : {}),
     ...(variant ? { variant } : {}),
+    ...(oxvarname ? { oxvarname } : {}),
+    ...(variants ? { variants } : {}),
     ...(categories ? { categories } : {}),
     ...(imageUrls[0] ? { thumbnailUrl: imageUrls[0] } : {}),
     ...(imageUrls.length > 0 ? { imageUrls } : {}),

@@ -66,6 +66,22 @@ export function getCartLine(
   return getCartLines(catalogSlug).find((l) => l.sku === sku);
 }
 
+/** Link target for editing a cart line (parent route + variant line key). */
+export function buildCartLineEditHref(
+  catalogSlug: string,
+  line: ConfiguredCartLine
+): string {
+  const parentSku = line.product?.parentSku ?? line.sku;
+  const params = new URLSearchParams();
+  if (line.product?.parentSku && line.sku !== parentSku) {
+    params.set("edit", line.sku);
+  }
+  const query = params.toString();
+  return `/c/${catalogSlug}/article/${encodeURIComponent(parentSku)}${
+    query ? `?${query}` : ""
+  }`;
+}
+
 export function getCartArticleCount(catalogSlug: string): number {
   return getCartLines(catalogSlug).length;
 }

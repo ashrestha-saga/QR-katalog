@@ -8,6 +8,7 @@ import { type Product } from "@/lib/mock-data";
 import { WIZARD_HAENDLER_STEP_ENABLED } from "@/lib/wizard-config";
 import { calcBasketTotals, calcLineTotals, formatEur } from "@/lib/pricing";
 import {
+  buildCartLineEditHref,
   clearCart,
   getCartLine,
   getCartLines,
@@ -86,7 +87,7 @@ function CartLineRow({
         </div>
         <div className="min-w-0 flex-1">
           <Link
-            href={`/c/${catalog.slug}/article/${line.sku}`}
+            href={buildCartLineEditHref(catalog.slug, line)}
             className="cart-line-title"
           >
             {product.name}
@@ -97,7 +98,7 @@ function CartLineRow({
             </p>
           ) : null}
           <p className="cart-line-meta">
-            Art. Nr. {line.sku}
+            Art. Nr. {product.sku}
             {product.shortDescription ? ` · ${product.shortDescription}` : null}
           </p>
 
@@ -317,7 +318,7 @@ export function WishlistCart({ catalog }: Props) {
           lines: lines.map((l) => {
             const product = products[l.sku] ?? l.product;
             return {
-              product_id: l.sku,
+              product_id: product?.sku ?? l.sku,
               quantity: l.quantity,
               ...(product?.oxidId ? { oxid_id: product.oxidId } : {}),
               ...(WIZARD_HAENDLER_STEP_ENABLED && l.haendlerId
@@ -370,11 +371,14 @@ export function WishlistCart({ catalog }: Props) {
 
   const inquiryLines: InquiryLine[] = useMemo(
     () =>
-      lines.map((line) => ({
-        sku: line.sku,
-        quantity: line.quantity,
-        product: products[line.sku] ?? line.product,
-      })),
+      lines.map((line) => {
+        const product = products[line.sku] ?? line.product;
+        return {
+          sku: product?.sku ?? line.sku,
+          quantity: line.quantity,
+          product,
+        };
+      }),
     [lines, products]
   );
 

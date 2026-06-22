@@ -7,10 +7,22 @@ import {
   shouldShowShortDescription,
 } from "@/lib/product-format";
 import { ProductSideSummary } from "./ProductSideSummary";
+import { VariantSelector } from "./VariantSelector";
+import type { VariantSelectionState } from "@/hooks/useVariantSelection";
 
 type Props = {
   product: Product;
+  variantSelection?: VariantSelectionState | null;
 };
+
+type VariantSelectorProps = Pick<
+  VariantSelectionState,
+  | "labels"
+  | "selectedValues"
+  | "optionsByIndex"
+  | "availableByIndex"
+  | "onSelectValue"
+>;
 
 function ProductThumbnail({ product }: Props) {
   if (!product.thumbnailUrl) {
@@ -24,6 +36,7 @@ function ProductThumbnail({ product }: Props) {
   return (
     <div className="h-16 w-16 shrink-0 overflow-hidden rounded-[14px] border border-mercury bg-white shadow-sm md:h-[84px] md:w-[84px]">
       <img
+        key={product.thumbnailUrl}
         src={product.thumbnailUrl}
         alt={`${product.name} Vorschaubild`}
         className="h-full w-full object-contain p-2"
@@ -35,6 +48,10 @@ function ProductThumbnail({ product }: Props) {
 function ProductImageCarousel({ product }: Props) {
   const images = product.imageUrls ?? [];
   const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [product.thumbnailUrl, product.imageUrls?.join("|")]);
 
   if (images.length === 0) {
     return (
@@ -63,6 +80,7 @@ function ProductImageCarousel({ product }: Props) {
     <div className="w-full">
       <div className="relative overflow-hidden rounded-[22px] border border-white/70 bg-gradient-to-br from-white via-white to-porcelain shadow-[0_18px_50px_rgba(10,22,40,0.10)]">
         <img
+          key={activeImage}
           src={activeImage}
           alt={`${product.name} Produktbild ${activeIndex + 1}`}
           className="h-64 w-full object-contain p-5 md:h-[420px] md:p-8"
@@ -121,6 +139,7 @@ function ProductImageCarousel({ product }: Props) {
 
 function ProductDetailModal({
   product,
+  variantSelection,
   onClose,
 }: Props & { onClose: () => void }) {
   useEffect(() => {
@@ -198,6 +217,16 @@ function ProductDetailModal({
         </div>
 
         <div className="space-y-6 p-5 md:p-7">
+          {variantSelection?.hasVariants ? (
+            <VariantSelector
+              labels={variantSelection.labels}
+              selectedValues={variantSelection.selectedValues}
+              optionsByIndex={variantSelection.optionsByIndex}
+              availableByIndex={variantSelection.availableByIndex}
+              onSelectValue={variantSelection.onSelectValue}
+            />
+          ) : null}
+
           <div className="rounded-[24px] bg-porcelain/70 p-3 md:p-4">
             <ProductImageCarousel product={product} />
           </div>
@@ -286,11 +315,40 @@ function ProductSummaryCard({ product }: Props) {
 }
 
 /** Phase 1 — article info only (no quantity, VAT, or totals) */
-export function ProductDetailStep({ product }: Props) {
+export function ProductDetailStep({ product, variantSelection }: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const selectorProps: VariantSelectorProps | null =
+    variantSelection?.hasVariants
+      ? {
+          labels: variantSelection.labels,
+          selectedValues: variantSelection.selectedValues,
+          optionsByIndex: variantSelection.optionsByIndex,
+          availableByIndex: variantSelection.availableByIndex,
+          onSelectValue: variantSelection.onSelectValue,
+        }
+      : null;
 
   return (
     <>
+      {selectorProps ? (
+        <div className="mb-4 rounded-[16px] border border-mercury bg-white p-4 shadow-sm">
+          <h3 className="mb-3 text-sm font-semibold text-secondary">
+            Variante wählen
+          </h3>
+          <VariantSelector {...selectorProps} />
+        </div>
+      ) : null}
+
+      {(product.thumbnailUrl || product.imageUrls?.length) ? (
+        <div className="mb-4 rounded-[16px] border border-mercury bg-white p-3 shadow-sm md:p-4">
+          <ProductImageCarousel
+            key={product.thumbnailUrl ?? product.sku}
+            product={product}
+          />
+        </div>
+      ) : null}
+
       <div className="product-card-mobile md:hidden">
         <button
           type="button"
@@ -318,6 +376,7 @@ export function ProductDetailStep({ product }: Props) {
       {isModalOpen && (
         <ProductDetailModal
           product={product}
+          variantSelection={variantSelection}
           onClose={() => setIsModalOpen(false)}
         />
       )}

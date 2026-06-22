@@ -7,10 +7,12 @@ export const preferredRegion = "fra1";
 
 type Props = {
   params: Promise<{ catalogSlug: string; sku: string }>;
+  searchParams: Promise<{ edit?: string }>;
 };
 
-export default async function ArticleConfigurePage({ params }: Props) {
+export default async function ArticleConfigurePage({ params, searchParams }: Props) {
   const { catalogSlug, sku } = await params;
+  const { edit } = await searchParams;
   const catalog = getCatalog(catalogSlug);
   const product = await fetchArticleBySku(sku);
 
@@ -18,5 +20,11 @@ export default async function ArticleConfigurePage({ params }: Props) {
     notFound();
   }
 
-  return <ArticleConfigure catalog={catalog} product={product} />;
+  return (
+    <ArticleConfigure
+      catalog={catalog}
+      product={product}
+      editCartSku={edit?.trim() || undefined}
+    />
+  );
 }

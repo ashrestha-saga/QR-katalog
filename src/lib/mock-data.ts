@@ -5,10 +5,27 @@ export type Haendler = {
   shopExample: string;
 };
 
+/** Slim OXID child article used for variant selection */
+export type OxidVariantRecord = {
+  oxid: string;
+  oxartnum: string;
+  oxtitle: string;
+  oxshortdesc: string;
+  oxprice: string;
+  oxpic1: string;
+  oxstock: number;
+  oxvarselect: string;
+  /** Resolved server-side — image host env is not available in the browser */
+  thumbnailUrl?: string;
+  imageUrls?: string[];
+};
+
 export type Product = {
   sku: string;
   /** OXID internal article ID (32-char) for basket addtoCart URLs */
   oxidId?: string;
+  /** Parent/master SKU when this line represents a selected variant */
+  parentSku?: string;
   name: string;
   catalogEdition?: string;
   shortDescription?: string;
@@ -20,6 +37,10 @@ export type Product = {
   unitName?: string;
   /** Selected variant, e.g. "55 cm, 50 m Rolle" — from OXID oxvarselect */
   variant?: string;
+  /** OXID variant dimension labels, e.g. "Gestellfarbe | Polsterausführung" */
+  oxvarname?: string;
+  /** Child variant articles from the OXID API (parent product only) */
+  variants?: OxidVariantRecord[];
   categories?: string[];
   thumbnailUrl?: string;
   imageUrls?: string[];

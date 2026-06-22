@@ -10,59 +10,77 @@
  */
 :root {
   --foreground: var(--color-secondary, #195084);
-  --background: var(--color-wildsand, #f5f5f5);
+  --background: #eef1f3;
 }
 
 body {
   color: var(--foreground);
-  background: var(--background);
+  background: #eef1f3;
   font-family: var(--font-opensans), "Open Sans", system-ui, sans-serif;
   line-height: 1.6;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  color: var(--color-primary);
-  font-weight: 600;
-  line-height: 1.2;
-  margin-bottom: 0.5rem;
-}
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--color-primary);
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
 
-h1 {
-  font-size: 2.5rem;
-}
+  h1 {
+    font-size: 2.5rem;
+  }
 
-h2 {
-  font-size: 2rem;
-}
+  h2 {
+    font-size: 2rem;
+  }
 
-h3 {
-  font-size: 1.75rem;
-}
+  h3 {
+    font-size: 1.75rem;
+  }
 
-h4 {
-  font-size: 1.5rem;
-}
+  h4 {
+    font-size: 1.5rem;
+  }
 
-h5 {
-  font-size: 1.25rem;
-}
+  h5 {
+    font-size: 1.25rem;
+  }
 
-h6 {
-  font-size: 1rem;
+  h6 {
+    font-size: 1rem;
+  }
 }
 
 @layer components {
   .app-container {
-    @apply mx-auto max-w-[920px] px-3 py-6 sm:px-6;
+    @apply mx-auto max-w-[1100px] px-3 py-6 sm:px-6;
+  }
+
+  .app-container-unified {
+    @apply py-6 sm:py-10;
+  }
+
+  .app-unified-card {
+    @apply overflow-hidden rounded-2xl bg-white shadow-stage;
+  }
+
+  .app-unified-main {
+    @apply w-full;
   }
 
   .brand-header {
     @apply mb-6 flex items-center gap-4 rounded-xl bg-white px-5 py-5 shadow-card sm:px-7;
+  }
+
+  .brand-header-attached {
+    @apply mb-0 flex items-center gap-4 rounded-none border-b border-mercury bg-white px-5 py-4 shadow-none sm:px-8 sm:py-5;
   }
 
   .brand-logo {
@@ -87,6 +105,131 @@ h6 {
 
   .cart-icon-badge {
     @apply absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent-pink px-1 text-[10px] font-bold text-white;
+  }
+
+  .cart-pill-btn {
+    @apply relative flex h-11 items-center gap-2 rounded-full border border-mercury bg-porcelain px-3.5 text-sm font-medium text-secondary transition hover:border-secondary/20 hover:bg-white;
+  }
+
+  .cart-pill-label {
+    @apply whitespace-nowrap;
+  }
+
+  .cart-pill-badge {
+    @apply flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-accent-pink px-1.5 text-xs font-bold text-white;
+  }
+
+  .scan-page {
+    @apply p-5 sm:p-8;
+  }
+
+  .scan-page .btn-primary {
+    @apply shadow-btn-primary;
+  }
+
+  .scan-catalog-label {
+    @apply mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-primary;
+  }
+
+  .scan-page-title {
+    @apply mb-3 text-[1.35rem] font-semibold leading-tight text-secondary sm:text-[1.75rem];
+  }
+
+  .scan-page-description {
+    @apply mb-6 text-sm leading-relaxed text-quinary sm:mb-8;
+  }
+
+  .scan-options {
+    @apply grid gap-0 md:grid-cols-2 md:gap-5;
+  }
+
+  .scan-option-card {
+    @apply rounded-xl border border-mercury bg-white p-5 shadow-card;
+  }
+
+  .scan-option-card-qr {
+    @apply border-primary/20 bg-accent-mint/60;
+  }
+
+  .scan-option-header {
+    @apply mb-5 flex items-start gap-3.5;
+  }
+
+  .scan-option-icon {
+    @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-accent-mint text-primary;
+  }
+
+  .scan-option-title {
+    @apply mb-1 text-base font-semibold text-secondary;
+  }
+
+  .scan-option-subtitle {
+    @apply text-sm leading-snug text-quinary;
+  }
+
+  .scan-camera-btn {
+    @apply flex items-center justify-center gap-2;
+  }
+
+  .scan-reader {
+    @apply mb-0 max-h-0 overflow-hidden rounded-xl border-0 bg-black opacity-0 transition-all duration-200;
+  }
+
+  .scan-reader-active {
+    @apply mb-4 max-h-none min-h-[280px] border border-mercury opacity-100;
+  }
+
+  .scan-options-divider {
+    @apply relative my-5 flex items-center justify-center md:hidden;
+  }
+
+  .scan-options-divider::before {
+    content: "";
+    @apply absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-mercury;
+  }
+
+  .scan-options-divider span {
+    @apply relative bg-white px-3 text-sm text-quinary;
+  }
+
+  .scan-manual-form {
+    @apply mb-4;
+  }
+
+  .scan-manual-label {
+    @apply mb-2 block text-sm font-semibold text-secondary;
+  }
+
+  .scan-manual-row {
+    @apply flex gap-2;
+  }
+
+  .scan-submit-btn {
+    @apply min-h-12 shrink-0 px-5;
+  }
+
+  .scan-examples {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .scan-examples-label {
+    @apply text-sm text-quinary;
+  }
+
+  .scan-example-pills {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .scan-example-pill {
+    @apply rounded-full border border-primary/20 bg-accent-mint px-3 py-1 text-sm font-medium text-primary transition hover:border-primary/40 hover:bg-white;
+  }
+
+  .scan-info-bar {
+    @apply mt-6 flex items-start gap-3 rounded-xl bg-porcelain px-4 py-3.5 text-sm leading-relaxed text-quinary shadow-card sm:mt-8;
+  }
+
+  .scan-info-bar svg {
+    @apply mt-0.5 shrink-0 text-primary;
   }
 
   .stage-card {
@@ -431,7 +574,7 @@ h6 {
   }
 
   .site-footer-inner {
-    @apply mx-auto grid max-w-[920px] grid-cols-2 gap-6 px-4 py-6 sm:grid-cols-3 sm:gap-10 sm:px-6 sm:py-8;
+    @apply mx-auto grid max-w-[1100px] grid-cols-2 gap-6 px-4 py-6 sm:grid-cols-3 sm:gap-10 sm:px-6 sm:py-8;
   }
 
   .site-footer-name {
@@ -470,6 +613,18 @@ h6 {
 
   .brand-header {
     @apply mb-4 px-4 py-4;
+  }
+
+  .brand-header-attached {
+    @apply px-4 py-4;
+  }
+
+  .app-container-unified {
+    @apply px-3 py-4;
+  }
+
+  .app-unified-card {
+    @apply rounded-xl;
   }
 
   .badge-version {
@@ -611,6 +766,26 @@ h6 {
 
   .success-icon {
     @apply mb-3 h-16 w-16 text-3xl;
+  }
+
+  .scan-page {
+    @apply rounded-xl p-4;
+  }
+
+  .scan-page-description {
+    @apply mb-5 text-[13px];
+  }
+
+  .scan-option-card {
+    @apply rounded-[14px] p-4;
+  }
+
+  .scan-manual-row {
+    @apply flex-col;
+  }
+
+  .scan-submit-btn {
+    @apply min-h-12 w-full;
   }
 
 }
