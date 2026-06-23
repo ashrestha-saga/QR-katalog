@@ -27,7 +27,7 @@ body {
   h4,
   h5,
   h6 {
-    color: var(--color-primary);
+    color: var(--color-secondary);
     font-weight: 600;
     line-height: 1.2;
     margin-bottom: 0.5rem;
@@ -140,7 +140,7 @@ body {
   }
 
   .scan-page-description {
-    @apply mb-6 text-base leading-relaxed text-quinary sm:mb-8;
+    @apply mb-6 text-base leading-relaxed text-black sm:mb-8;
   }
 
   .scan-options {
@@ -168,7 +168,7 @@ body {
   }
 
   .scan-option-subtitle {
-    @apply text-sm leading-snug text-quinary;
+    @apply text-sm leading-snug text-black;
   }
 
   .scan-camera-btn {
@@ -273,7 +273,7 @@ body {
   }
 
   .landing-step {
-    @apply flex items-start gap-3 text-base leading-relaxed text-quinary;
+    @apply flex items-start gap-3 text-base leading-relaxed text-black;
   }
 
   .landing-step-number {
@@ -313,15 +313,15 @@ body {
   }
 
   .cart-line-title {
-    @apply text-base font-semibold text-primary transition hover:text-primary-hover hover:underline;
+    @apply text-base font-semibold text-secondary transition hover:text-secondary-hover hover:underline;
   }
 
   .cart-line-variant {
-    @apply mt-1 text-sm text-secondary;
+    @apply mt-1 text-sm text-black;
   }
 
   .cart-line-meta {
-    @apply mt-1 text-xs text-quinary;
+    @apply mt-1 text-xs text-black;
   }
 
   .cart-line-bottom {
@@ -421,7 +421,7 @@ body {
   }
 
   .inquiry-modal-intro {
-    @apply mt-2 text-sm leading-relaxed text-quinary;
+    @apply mt-2 text-sm leading-relaxed text-black;
   }
 
   .inquiry-modal-close {
@@ -441,15 +441,15 @@ body {
   }
 
   .inquiry-modal-article-row {
-    @apply flex items-start justify-between gap-3 border-b border-mercury/60 pb-2 text-sm last:border-0 last:pb-0;
+    @apply flex items-start justify-between gap-3 border-b border-mercury/60 p-2 text-sm last:border-0 last:pb-0;
   }
 
   .inquiry-modal-article-name {
-    @apply font-semibold text-primary;
+    @apply font-semibold text-secondary text-sm;
   }
 
   .inquiry-modal-article-meta {
-    @apply mt-0.5 text-xs text-quinary;
+    @apply mt-0.5 text-sm text-black;
   }
 
   .inquiry-modal-article-total {
@@ -457,7 +457,7 @@ body {
   }
 
   .inquiry-modal-articles-total {
-    @apply mt-2 flex justify-between gap-3 border-t border-mercury pt-2 text-sm font-bold text-secondary;
+    @apply mt-2 flex justify-between gap-3 border-t border-mercury p-2 text-sm font-bold text-secondary;
   }
 
   .inquiry-modal-articles-total span:last-child {
@@ -525,7 +525,7 @@ body {
   }
 
   .article-page-description {
-    @apply mb-6 text-base leading-relaxed text-quinary sm:mb-8;
+    @apply mb-6 text-base leading-relaxed text-black sm:mb-8;
   }
 
   .article-progress {
@@ -637,19 +637,19 @@ body {
   }
 
   .article-product-card {
-    @apply rounded-xl border border-mercury bg-cart-line p-3.5 sm:p-4;
+    @apply rounded-xl p-3.5 sm:p-4;
   }
 
   .article-product-sku {
-    @apply mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-quinary;
+    @apply mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-black;
   }
 
   .article-product-name {
-    @apply text-base font-semibold text-primary sm:text-lg;
+    @apply text-base font-semibold text-secondary sm:text-lg;
   }
 
   .article-product-spec {
-    @apply mt-1 text-sm text-quinary;
+    @apply mt-1 text-sm text-black;
   }
 
   .article-product-details-link {
@@ -673,7 +673,7 @@ body {
   }
 
   .article-variant-label {
-    @apply text-sm font-semibold text-quinary;
+    @apply text-base font-semibold text-secondary;
   }
 
   .article-variant-select {
@@ -705,7 +705,7 @@ body {
   }
 
   .article-config-info-label {
-    @apply shrink-0 font-medium text-quinary;
+    @apply shrink-0 font-medium text-secondary;
   }
 
   .article-config-info-value {
@@ -803,7 +803,7 @@ body {
   }
 
   .step-description {
-    @apply mb-6 text-sm text-quinary;
+    @apply mb-6 text-sm text-black;
   }
 
   .selection-tabs {
@@ -903,7 +903,7 @@ body {
   }
 
   .select-field {
-    @apply w-full rounded-lg border border-mercury px-4 py-3 font-semibold text-secondary transition focus:border-accent-pink focus:outline-none;
+    @apply w-full rounded-lg border border-mercury px-4 py-3 text-sm font-medium text-secondary transition focus:border-accent-pink focus:outline-none;
   }
 
   .select-field.inquiry-modal-title-select {

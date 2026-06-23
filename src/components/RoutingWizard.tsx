@@ -568,7 +568,7 @@ export function RoutingWizard({
                     className="h-[60px] w-[60px] rounded-lg"
                   />
                 }
-                nameClassName="text-base font-semibold text-primary"
+                nameClassName="text-base font-semibold text-secondary"
               />
             </div>
 

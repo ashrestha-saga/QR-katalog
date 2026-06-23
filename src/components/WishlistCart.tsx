@@ -32,10 +32,10 @@ type RedirectEntry = {
 };
 
 const SHOP_CHECKOUT_NOTE =
-  "Sobald Sie auf die Schaltfläche klicken, werden Sie direkt zum Warenkorb des Shopsystems weitergeleitet. Wir speichern keinerlei Informationen auf unserer Seite.";
+  "Mit Klick auf „Weiter zur Bestellung“ werden die für die Bearbeitung Ihrer Bestellung erforderlichen Daten an das Shopsystem übertragen. Die Verarbeitung erfolgt gemäß Art. 6 Abs. 1 lit. b DSGVO. Es werden keine zusätzlichen personenbezogenen Daten erhoben.";
 
 const INQUIRY_CHECKOUT_NOTE =
-  "Beim Klick öffnet sich ein Formular zur Anfrage per E-Mail an unser Service-Team. Ihre Angaben werden nur zur Bearbeitung der Anfrage versendet — wir speichern keine Informationen in dieser App.";
+  "Mit dem Absenden Ihrer Anfrage werden Ihre Kontaktdaten sowie die ausgewählten Produkte an den Betreiber der Anwendung übermittelt und zur Bearbeitung Ihrer Anfrage gemäß Art. 6 Abs. 1 lit. b DSGVO verarbeitet. Es werden keine weiteren personenbezogenen Daten erhoben. Weitere Informationen finden Sie in der Datenschutzerklärung.";
 
 function TrashIcon() {
   return (
@@ -240,7 +240,7 @@ function CartSummary({
         </div>
 
         <p className="cart-checkout-note">
-          {shopCheckoutEnabled ? SHOP_CHECKOUT_NOTE : INQUIRY_CHECKOUT_NOTE}
+          <span className="font-bold">Datenschutzhinweis: </span>{shopCheckoutEnabled ? SHOP_CHECKOUT_NOTE : INQUIRY_CHECKOUT_NOTE}
         </p>
 
         {submitError ? <p className="geo-warn">{submitError}</p> : null}

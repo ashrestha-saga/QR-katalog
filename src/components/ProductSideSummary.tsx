@@ -24,7 +24,7 @@ export function ProductSideSummary({
   showEdition = false,
   showDetailsHint = false,
   showDeliveryScope = false,
-  nameClassName = "text-[15px] font-semibold text-primary md:text-base",
+  nameClassName = "text-[15px] font-semibold text-secondary md:text-base",
   compact = false,
 }: Props) {
   const variantLine = formatVariantWithUnit(product);
