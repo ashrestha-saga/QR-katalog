@@ -239,34 +239,35 @@ function ProductDetailModal({
 
           <ProductImageCarousel product={product} />
 
+
           <div className="grid gap-3 text-sm text-secondary">
             {shouldShowShortDescription(product) && (
-              <section className="rounded-xl border border-mercury bg-cart-line p-4">
+              <section className="rounded-xl  p-2">
                 <h3 className="mb-1 text-sm font-semibold">Kurzbeschreibung</h3>
-                <p className="leading-relaxed text-quinary">
+                <p className="leading-relaxed text-black">
                   {product.shortDescription}
                 </p>
               </section>
             )}
 
             {product.description && (
-              <section className="rounded-xl border border-mercury bg-cart-line p-4">
+              <section className="rounded-xl  p-2">
                 <h3 className="mb-1 text-sm font-semibold">Beschreibung</h3>
-                <p className="whitespace-pre-line leading-relaxed text-quinary">
+                <p className="whitespace-pre-line leading-relaxed text-black">
                   {product.description}
                 </p>
               </section>
             )}
 
             {product.details && product.details !== product.description && (
-              <section className="rounded-xl border border-mercury bg-cart-line p-4">
+              <section className="rounded-xl  p-2">
                 <h3 className="mb-1 text-sm font-semibold">Details</h3>
-                <p className="leading-relaxed text-quinary">{product.details}</p>
+                <p className="leading-relaxed text-black">{product.details}</p>
               </section>
             )}
 
             {product.unitName && !product.variant ? (
-              <section className="rounded-xl border border-mercury bg-cart-line p-4">
+              <section className="rounded-xl  p-2">
                 <h3 className="mb-1 text-sm font-semibold">
                   Verpackungseinheit (VE)
                 </h3>
@@ -275,7 +276,7 @@ function ProductDetailModal({
             ) : null}
 
             {product.categories && product.categories.length > 0 && (
-              <section className="rounded-xl border border-mercury bg-cart-line p-4">
+              <section className="rounded-xl border border-mercury bg-cart-line p-3">
                 <h3 className="mb-2 text-sm font-semibold">Kategorien</h3>
                 <div className="flex flex-wrap gap-2">
                   {product.categories.map((category) => (

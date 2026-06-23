@@ -62,7 +62,7 @@ export const SEMANTIC: ColorToken[] = [
  */
 export const NEUTRAL: ColorToken[] = [
   { cssVar: "color-white", env: "THEME_COLOR_WHITE", fallback: "#ffffff" },
-  { cssVar: "color-black", env: "THEME_COLOR_BLACK", fallback: "#000000" },
+  { cssVar: "color-black", env: "THEME_COLOR_BLACK", fallback: "#212529" },
 ];
 
 export const ALL_TOKENS: ColorToken[] = [...PALETTE, ...SEMANTIC, ...NEUTRAL];
