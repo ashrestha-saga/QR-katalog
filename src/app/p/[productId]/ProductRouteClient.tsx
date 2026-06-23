@@ -8,6 +8,7 @@ import { DEFAULT_CATALOG_SLUG } from "@/lib/catalog-constants";
 import { canLoadArticle, getCatalogSession } from "@/lib/catalog-session";
 import { clearHaendlerCookie, getHaendlerCookie } from "@/lib/cookies";
 import type { Product } from "@/lib/mock-data";
+import { hasVariants } from "@/lib/oxid-variant-selection";
 
 type Props = {
   product: Product;
@@ -41,14 +42,14 @@ export function ProductRouteClient({
 
     setGate("allowed");
 
-    if (forceWizard) {
+    if (forceWizard || hasVariants(product)) {
       clearHaendlerCookie();
       setMode("wizard");
       return;
     }
     const cookie = getHaendlerCookie();
     setMode(cookie ? "fast" : "wizard");
-  }, [product.sku, catalogSlug, fromScan, forceWizard]);
+  }, [product, catalogSlug, fromScan, forceWizard]);
 
   if (gate === "checking") {
     return (

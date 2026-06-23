@@ -8,8 +8,7 @@ type Props = {
 
 export function ProductThumb({
   product,
-  className = "h-14 w-14 rounded-[10px]",
-  imageClassName = "p-1.5",
+  className = "h-14 w-14 rounded-[10px]"
 }: Props) {
   const baseClassName = `${className} product-thumb shrink-0 overflow-hidden border border-mercury bg-white shadow-sm`;
 
@@ -24,9 +23,10 @@ export function ProductThumb({
   return (
     <div className={baseClassName}>
       <img
+        key={product.thumbnailUrl}
         src={product.thumbnailUrl}
         alt={`${product.name} Vorschaubild`}
-        className={`h-full w-full object-contain ${imageClassName}`}
+        className={`h-full w-full object-contain`}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import type { Product } from "@/lib/mock-data";
+import type { OxidVariantRecord, Product } from "@/lib/mock-data";
 import { getMerzljakImageBaseUrl } from "./config";
 
 type OxidArticleRecord = Record<string, unknown>;
@@ -89,6 +89,51 @@ function getCategoryNames(record: OxidArticleRecord): string[] | undefined {
   return names.size > 0 ? [...names] : undefined;
 }
 
+function mapVariantRecord(record: OxidArticleRecord): OxidVariantRecord | null {
+  const oxartnum = pickString(record, ["oxartnum", "OXARTNUM"]);
+  const oxvarselect = pickString(record, ["oxvarselect", "OXVARSELECT"]);
+  const oxid = pickString(record, ["oxid", "OXID"]);
+  const oxtitle = pickString(record, ["oxtitle", "OXTITLE"]);
+  const oxshortdesc = pickString(record, ["oxshortdesc", "OXSHORTDESC"]) ?? "";
+  const oxprice = pickString(record, ["oxprice", "OXPRICE"]) ?? "0";
+  const oxpic1 = pickString(record, ["oxpic1", "OXPIC1"]) ?? "";
+  const oxstock = pickNumber(record, ["oxstock", "OXSTOCK"]) ?? -1;
+  const mpzn = pickString(record, ["mpzn", "MPZN"]);
+
+  if (!oxartnum || !oxvarselect || !oxid || !oxtitle) return null;
+
+  const imageUrls = getImageUrls(record);
+
+  return {
+    oxid,
+    oxartnum,
+    oxtitle,
+    oxshortdesc,
+    oxprice,
+    oxpic1,
+    oxstock,
+    oxvarselect,
+    ...(mpzn ? { mpzn } : {}),
+    ...(imageUrls[0] ? { thumbnailUrl: imageUrls[0] } : {}),
+    ...(imageUrls.length > 0 ? { imageUrls } : {}),
+  };
+}
+
+function mapVariants(record: OxidArticleRecord): OxidVariantRecord[] | undefined {
+  const raw = record.variants;
+  if (!Array.isArray(raw) || raw.length === 0) return undefined;
+
+  const variants = raw
+    .filter(
+      (item): item is OxidArticleRecord =>
+        item !== null && typeof item === "object" && !Array.isArray(item)
+    )
+    .map(mapVariantRecord)
+    .filter((variant): variant is OxidVariantRecord => variant !== null);
+
+  return variants.length > 0 ? variants : undefined;
+}
+
 /** Map OXID article API payload → catalog Product */
 export function mapOxidArticleToProduct(
   record: OxidArticleRecord,
@@ -120,6 +165,7 @@ export function mapOxidArticleToProduct(
 
   const vatPercent = pickNumber(record, ["oxvat", "OXVAT", "vat"]) ?? 19;
   const taxRate = vatPercent > 1 ? vatPercent / 100 : vatPercent;
+  const stock = pickNumber(record, ["oxstock", "OXSTOCK"]) ?? undefined;
 
   const imageUrls = getImageUrls(record);
   const shortDescription = pickString(record, [
@@ -143,6 +189,9 @@ export function mapOxidArticleToProduct(
     htmlToText(pickString(record, ["oxlongdesc", "mwvfeature", "description"])) ??
     htmlToText(details);
   const categories = getCategoryNames(record);
+  const oxvarname = pickString(record, ["oxvarname", "OXVARNAME"]);
+  const variants = mapVariants(record);
+  const mpzn = pickString(record, ["mpzn", "MPZN"]);
 
   return {
     sku,
@@ -155,9 +204,13 @@ export function mapOxidArticleToProduct(
     ...(deliveryScope ? { deliveryScope } : {}),
     ...(unitName ? { unitName } : {}),
     ...(variant ? { variant } : {}),
+    ...(oxvarname ? { oxvarname } : {}),
+    ...(variants ? { variants } : {}),
     ...(categories ? { categories } : {}),
     ...(imageUrls[0] ? { thumbnailUrl: imageUrls[0] } : {}),
     ...(imageUrls.length > 0 ? { imageUrls } : {}),
+    ...(stock !== undefined ? { stock } : {}),
+    ...(mpzn ? { mpzn } : {}),
     unitPriceExclTax: Math.round(price * 100) / 100,
     taxRate: Math.round(taxRate * 10000) / 10000,
     currency: "EUR",
