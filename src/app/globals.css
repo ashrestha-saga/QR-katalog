@@ -393,7 +393,7 @@ body {
   }
 
   .cart-checkout-note {
-    @apply mt-3 text-center text-xs leading-relaxed text-quinary;
+    @apply mt-3 text-justify text-xs leading-relaxed text-quinary;
   }
 
   .cart-empty {
@@ -493,7 +493,7 @@ body {
   }
 
   .inquiry-modal-note {
-    @apply col-span-2 pt-2 text-center text-xs leading-relaxed text-quinary;
+    @apply col-span-2 pt-2 text-justify text-xs leading-relaxed text-quinary;
   }
 
   .inquiry-modal-consent {
@@ -1349,10 +1349,6 @@ body {
 
   .inquiry-modal-form {
     @apply gap-3;
-  }
-
-  .inquiry-modal-note {
-    @apply text-left;
   }
 
   .inquiry-modal-consent {

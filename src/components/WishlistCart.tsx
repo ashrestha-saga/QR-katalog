@@ -34,9 +34,6 @@ type RedirectEntry = {
 const SHOP_CHECKOUT_NOTE =
   "Mit Klick auf „Weiter zur Bestellung“ werden die für die Bearbeitung Ihrer Bestellung erforderlichen Daten an das Shopsystem übertragen. Die Verarbeitung erfolgt gemäß Art. 6 Abs. 1 lit. b DSGVO. Es werden keine zusätzlichen personenbezogenen Daten erhoben.";
 
-const INQUIRY_CHECKOUT_NOTE =
-  "Mit dem Absenden Ihrer Anfrage werden Ihre Kontaktdaten sowie die ausgewählten Produkte an den Betreiber der Anwendung übermittelt und zur Bearbeitung Ihrer Anfrage gemäß Art. 6 Abs. 1 lit. b DSGVO verarbeitet. Es werden keine weiteren personenbezogenen Daten erhoben. Weitere Informationen finden Sie in der Datenschutzerklärung.";
-
 function TrashIcon() {
   return (
     <svg
@@ -240,7 +237,7 @@ function CartSummary({
         </div>
 
         <p className="cart-checkout-note">
-          <span className="font-bold">Datenschutzhinweis: </span>{shopCheckoutEnabled ? SHOP_CHECKOUT_NOTE : INQUIRY_CHECKOUT_NOTE}
+        {shopCheckoutEnabled ? <><span className="font-bold">Datenschutzhinweis: </span> {SHOP_CHECKOUT_NOTE}</> : ""}
         </p>
 
         {submitError ? <p className="geo-warn">{submitError}</p> : null}

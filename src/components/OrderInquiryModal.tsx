@@ -61,7 +61,7 @@ const EMPTY_FORM: FormState = {
 };
 
 const INQUIRY_SUBMIT_NOTE =
-  "Nach dem Absenden wird Ihre Anfrage per E-Mail an unser Service-Team übermittelt. Wir speichern keine Daten in dieser Anwendung — die Angaben werden ausschließlich zur Bearbeitung Ihrer Anfrage verwendet.";
+  "Mit dem Absenden Ihrer Anfrage werden Ihre Kontaktdaten sowie die ausgewählten Produkte an den Betreiber der Anwendung übermittelt und zur Bearbeitung Ihrer Anfrage gemäß Art. 6 Abs. 1 lit. b DSGVO verarbeitet. Es werden keine weiteren personenbezogenen Daten erhoben. Weitere Informationen finden Sie in der Datenschutzerklärung.";
 
 const IMPRESSUM_URL =
   process.env.NEXT_PUBLIC_COMPANY_IMPRESSUM_URL?.trim() ||
@@ -543,30 +543,7 @@ export function OrderInquiryModal({
               />
             </FormField>
 
-            <p className="inquiry-modal-note">{INQUIRY_SUBMIT_NOTE}</p>
-
-            <label className="inquiry-modal-consent">
-              <input
-                type="checkbox"
-                checked={agreedToTerms}
-                onChange={(event) => {
-                  setAgreedToTerms(event.target.checked);
-                  if (error) setError(null);
-                }}
-              />
-              <span>
-                Ich habe die{" "}
-                <a
-                  href={IMPRESSUM_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Datenschutzhinweise
-                </a>{" "}
-                gelesen und stimme der Übermittlung meiner Angaben per E-Mail an
-                das Service-Team zu.
-              </span>
-            </label>
+            <p className="inquiry-modal-note"><span className="font-bold">Datenschutzhinweis: </span>{INQUIRY_SUBMIT_NOTE}</p>
 
             {error ? <p className="geo-warn col-span-2">{error}</p> : null}
 
