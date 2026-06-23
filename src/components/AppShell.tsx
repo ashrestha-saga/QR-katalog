@@ -9,6 +9,7 @@ type Props = {
   brandBadge?: string;
   cartCatalogSlug?: string;
   cartHref?: string;
+  homeHref?: string;
   footer?: ReactNode;
   containerClassName?: string;
   unifiedCard?: boolean;
@@ -22,11 +23,12 @@ export function AppShell({
   brandBadge,
   cartCatalogSlug,
   cartHref,
+  homeHref,
   footer,
   containerClassName,
   unifiedCard = false,
 }: Props) {
-  const containerClass = `app-container min-h-dvh${
+  const containerClass = `app-container min-h-full${
     unifiedCard ? " app-container-unified" : ""
   }${containerClassName ? ` ${containerClassName}` : ""}`;
 
@@ -41,6 +43,7 @@ export function AppShell({
               badge={brandBadge}
               cartCatalogSlug={cartCatalogSlug}
               cartHref={cartHref}
+              homeHref={homeHref}
               attached
             />
           ) : null}
@@ -60,6 +63,7 @@ export function AppShell({
           badge={brandBadge}
           cartCatalogSlug={cartCatalogSlug}
           cartHref={cartHref}
+          homeHref={homeHref}
         />
       ) : null}
       <div className="app-main">{children}</div>

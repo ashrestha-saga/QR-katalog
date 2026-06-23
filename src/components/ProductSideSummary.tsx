@@ -34,7 +34,7 @@ export function ProductSideSummary({
       className={
         compact
           ? "min-w-0 text-left"
-          : "flex items-center gap-3 text-left"
+          : "flex items-center gap-4 text-left"
       }
     >
       {showThumb ? thumb ?? <ProductThumb product={product} /> : null}
@@ -43,11 +43,6 @@ export function ProductSideSummary({
         <div className={nameClassName}>{product.name}</div>
         {variantLine ? (
           <div className="article-product-spec">{variantLine}</div>
-        ) : null}
-        {shouldShowShortDescription(product) ? (
-          <p className="article-product-spec mt-1">
-            {product.shortDescription}
-          </p>
         ) : null}
         {showEdition && product.catalogEdition ? (
           <div className="mt-1 text-[11px] text-quinary md:text-[13px]">

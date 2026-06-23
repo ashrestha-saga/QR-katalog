@@ -427,6 +427,7 @@ export function RoutingWizard({
             <ProductDetailStep
               product={displayProduct}
               variantSelection={variantSelection}
+              balancedLayout={wishlistMode}
             >
               {wishlistMode ? (
                 <div className="article-quantity-row">
@@ -482,7 +483,7 @@ export function RoutingWizard({
             </ProductDetailStep>
             {!variantSelection.isVariantSelectionComplete &&
             variantSelection.hasVariants ? (
-              <p className="mt-3 text-center text-sm text-quinary">
+              <p className="mt-3 text-center text-base text-quinary">
                 Bitte wähle alle Varianten aus, um fortzufahren.
               </p>
             ) : null}

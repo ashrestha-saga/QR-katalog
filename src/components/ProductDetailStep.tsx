@@ -6,6 +6,7 @@ import {
   formatVariantWithUnit,
   shouldShowShortDescription,
 } from "@/lib/product-format";
+import { ArticleConfigInfoCard } from "./ArticleConfigInfoCard";
 import { ProductSideSummary } from "./ProductSideSummary";
 import { VariantSelector } from "./VariantSelector";
 import type { VariantSelectionState } from "@/hooks/useVariantSelection";
@@ -14,6 +15,8 @@ type Props = {
   product: Product;
   variantSelection?: VariantSelectionState | null;
   children?: React.ReactNode;
+  /** Equal 50/50 columns with a larger preview — article configure step 1 */
+  balancedLayout?: boolean;
 };
 
 type VariantSelectorProps = Pick<
@@ -304,6 +307,7 @@ export function ProductDetailStep({
   product,
   variantSelection,
   children,
+  balancedLayout = false,
 }: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -323,11 +327,13 @@ export function ProductDetailStep({
   return (
     <>
       <div
-        className={
-          hasVariants
-            ? "article-step-layout"
-            : "article-step-layout article-step-layout--simple"
-        }
+        className={[
+          "article-step-layout",
+          hasVariants ? "" : "article-step-layout--simple",
+          balancedLayout ? "article-step-layout--balanced" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
       >
         <div className="article-step-media">
           <ProductImageCarousel product={product} tall={!hasVariants} />
@@ -349,6 +355,12 @@ export function ProductDetailStep({
               />
             ) : null}
             {selectorProps ? <VariantSelector {...selectorProps} /> : null}
+            <ArticleConfigInfoCard
+              product={product}
+              hasVariants={hasVariants}
+              isComplete={variantSelection?.isVariantSelectionComplete ?? true}
+              selectedVariant={variantSelection?.selectedVariant}
+            />
             {children}
           </div>
         ) : null}

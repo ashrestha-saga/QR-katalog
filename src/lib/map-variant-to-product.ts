@@ -23,6 +23,8 @@ export function mapVariantToDisplayProduct(
     shortDescription: variant.oxshortdesc || parent.shortDescription,
     variant: variant.oxvarselect,
     unitPriceExclTax: parsePrice(variant.oxprice),
+    stock: variant.oxstock,
+    mpzn: variant.mpzn,
     thumbnailUrl: thumbnailUrl ?? parent.thumbnailUrl,
     imageUrls: imageUrls.length > 0 ? imageUrls : parent.imageUrls,
     oxvarname: undefined,

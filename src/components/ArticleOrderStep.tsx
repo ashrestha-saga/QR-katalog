@@ -97,7 +97,6 @@ export function ArticleOrderStep({
               <ProductThumb
                 product={product}
                 className="article-order-thumb"
-                imageClassName="p-1.5"
               />
             }
             nameClassName="article-product-name"

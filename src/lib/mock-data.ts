@@ -15,6 +15,8 @@ export type OxidVariantRecord = {
   oxpic1: string;
   oxstock: number;
   oxvarselect: string;
+  /** Pharmazentralnummer (PZN), when provided by OXID */
+  mpzn?: string;
   /** Resolved server-side — image host env is not available in the browser */
   thumbnailUrl?: string;
   imageUrls?: string[];
@@ -46,6 +48,10 @@ export type Product = {
   imageUrls?: string[];
   /** Unit price excluding tax (EUR) */
   unitPriceExclTax: number;
+  /** OXID stock flag; -1 = unknown */
+  stock?: number;
+  /** Pharmazentralnummer (PZN), from OXID mpzn */
+  mpzn?: string;
   /** e.g. 0.19 for 19% VAT */
   taxRate: number;
   currency: "EUR";

@@ -116,7 +116,6 @@ function CartLineRow({
           <ProductThumb
             product={product}
             className="h-full w-full rounded-lg border-0 shadow-none"
-            imageClassName="p-2"
           />
         </div>
         <div className="min-w-0 flex-1">

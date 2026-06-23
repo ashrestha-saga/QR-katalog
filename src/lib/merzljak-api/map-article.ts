@@ -98,6 +98,7 @@ function mapVariantRecord(record: OxidArticleRecord): OxidVariantRecord | null {
   const oxprice = pickString(record, ["oxprice", "OXPRICE"]) ?? "0";
   const oxpic1 = pickString(record, ["oxpic1", "OXPIC1"]) ?? "";
   const oxstock = pickNumber(record, ["oxstock", "OXSTOCK"]) ?? -1;
+  const mpzn = pickString(record, ["mpzn", "MPZN"]);
 
   if (!oxartnum || !oxvarselect || !oxid || !oxtitle) return null;
 
@@ -112,6 +113,7 @@ function mapVariantRecord(record: OxidArticleRecord): OxidVariantRecord | null {
     oxpic1,
     oxstock,
     oxvarselect,
+    ...(mpzn ? { mpzn } : {}),
     ...(imageUrls[0] ? { thumbnailUrl: imageUrls[0] } : {}),
     ...(imageUrls.length > 0 ? { imageUrls } : {}),
   };
@@ -163,6 +165,7 @@ export function mapOxidArticleToProduct(
 
   const vatPercent = pickNumber(record, ["oxvat", "OXVAT", "vat"]) ?? 19;
   const taxRate = vatPercent > 1 ? vatPercent / 100 : vatPercent;
+  const stock = pickNumber(record, ["oxstock", "OXSTOCK"]) ?? undefined;
 
   const imageUrls = getImageUrls(record);
   const shortDescription = pickString(record, [
@@ -188,6 +191,7 @@ export function mapOxidArticleToProduct(
   const categories = getCategoryNames(record);
   const oxvarname = pickString(record, ["oxvarname", "OXVARNAME"]);
   const variants = mapVariants(record);
+  const mpzn = pickString(record, ["mpzn", "MPZN"]);
 
   return {
     sku,
@@ -205,6 +209,8 @@ export function mapOxidArticleToProduct(
     ...(categories ? { categories } : {}),
     ...(imageUrls[0] ? { thumbnailUrl: imageUrls[0] } : {}),
     ...(imageUrls.length > 0 ? { imageUrls } : {}),
+    ...(stock !== undefined ? { stock } : {}),
+    ...(mpzn ? { mpzn } : {}),
     unitPriceExclTax: Math.round(price * 100) / 100,
     taxRate: Math.round(taxRate * 10000) / 10000,
     currency: "EUR",

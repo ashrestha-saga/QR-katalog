@@ -24,6 +24,7 @@ export function CatalogAppShell({
   unifiedCard = false,
 }: Props) {
   const cartHref = `/c/${catalog.slug}/cart`;
+  const homeHref = `/c/${catalog.slug}`;
 
   return (
     <AppShell
@@ -32,6 +33,7 @@ export function CatalogAppShell({
       brandBadge={brandBadge}
       cartCatalogSlug={catalog.slug}
       cartHref={cartHref}
+      homeHref={homeHref}
       footer={footer}
       containerClassName={containerClassName}
       unifiedCard={unifiedCard}
