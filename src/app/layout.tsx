@@ -16,6 +16,16 @@ const catalogTitle = process.env.CATALOG_TITLE?.trim() || COMPANY.name;
 export const metadata: Metadata = {
   title: `${catalogTitle} — ${COMPANY.name}`,
   description: `${COMPANY.name} — Katalogartikel scannen und direkt im Shop bestellen.`,
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+    },
+  },
   icons: {
     icon: "/logo/Med Sales Favicon Symbol.svg",
   },
