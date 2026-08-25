@@ -28,10 +28,10 @@ export const STEP_MOBILE_SUBTITLES: Record<number, string> =
   WIZARD_HAENDLER_STEP_ENABLED
     ? {
         1: "Produktdetails — im nächsten Schritt Händler wählen.",
-        2: "Wähle deinen Händler.",
-        3: "Menge und Gesamtbetrag prüfen — danach zum Warenkorb.",
+        2: "Wähle deinen Händler — danach zum Warenkorb.",
+        3: "Menge und Gesamtbetrag prüfen.",
       }
     : {
-        1: "Produktdetails — im nächsten Schritt Menge und Bestellung.",
-        2: "Menge und Gesamtbetrag prüfen — danach zum Warenkorb.",
+        1: "Produktdetails, Menge wählen und im Warenkorb speichern.",
+        2: "Menge und Gesamtbetrag prüfen.",
       };

@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Skip the post-save “Weiterleitung” step: saving from the order step goes straight to the Warenkorb.
-- Move Germany shipping (Versand) from the article order step into the cart summary, with net tiers (≤€30 → €12.90, ≤€100 → €7.90, >€100 → free).
+- Catalog article flow is a single configure page: variant + quantity, then “In Warenkorb speichern” goes straight to the cart (Bestellung and Weiterleitung steps removed).
+- Move Germany shipping (Versand) into the cart summary, with net tiers (≤€30 → €12.90, ≤€100 → €7.90, >€100 → free).
 
 ### Added
 

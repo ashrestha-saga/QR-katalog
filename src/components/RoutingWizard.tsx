@@ -32,7 +32,6 @@ import {
   WIZARD_ORDER_STEP,
   WIZARD_SUCCESS_STEP,
 } from "@/lib/wizard-config";
-import { ArticleOrderStep } from "./ArticleOrderStep";
 import { AppShell } from "./AppShell";
 import {
   GeoHaendlerStep,
@@ -398,25 +397,33 @@ export function RoutingWizard({
   const wizardShellClass =
     !useShell && wishlistMode ? "article-page" : "stage-card";
 
+  /** Catalog flow: product (+ optional dealer) → cart; no separate Bestellung step */
+  const wishlistSkipsOrderStep = wishlistMode;
+  const progressTotal = wishlistSkipsOrderStep
+    ? WIZARD_HAENDLER_STEP_ENABLED
+      ? (WIZARD_DEALER_STEP ?? 1)
+      : 1
+    : WIZARD_ACTIVE_STEPS;
+  const showWishlistProgress = wishlistMode && progressTotal > 1;
+  const afterProductStep = WIZARD_DEALER_STEP ?? WIZARD_ORDER_STEP;
+
   const wizardBody = (
     <>
       <div className={wizardShellClass}>
-        <StepIndicator
-          current={step}
-          total={WIZARD_ACTIVE_STEPS}
-          variant={
-            wishlistMode && (step === 1 || step === WIZARD_ORDER_STEP)
-              ? "article"
-              : "default"
-          }
-          mobileSubtitle={
-            step === WIZARD_ORDER_STEP && selectedHaendlerEntity
-              ? `Bei ${selectedHaendlerEntity.name}.`
-              : undefined
-          }
-        />
+        {(!wishlistMode || showWishlistProgress) && (
+          <StepIndicator
+            current={step}
+            total={progressTotal}
+            variant={wishlistMode && step === 1 ? "article" : "default"}
+            mobileSubtitle={
+              step === WIZARD_DEALER_STEP && selectedHaendlerEntity
+                ? `Bei ${selectedHaendlerEntity.name}.`
+                : undefined
+            }
+          />
+        )}
 
-        {!(wishlistMode && (step === 1 || step === WIZARD_ORDER_STEP)) ? (
+        {!(wishlistMode && step === 1) ? (
           <p className="step-description">{stepDescription(step)}</p>
         ) : null}
 
@@ -424,9 +431,13 @@ export function RoutingWizard({
           <>
             {wishlistMode ? (
               <>
-                <p className="article-page-label">
-                  Schritt 1 von {WIZARD_ACTIVE_STEPS} · Produkt
-                </p>
+                {showWishlistProgress ? (
+                  <p className="article-page-label">
+                    Schritt 1 von {progressTotal} · Produkt
+                  </p>
+                ) : (
+                  <p className="article-page-label">Produkt</p>
+                )}
                 <h1 className="article-page-title">
                   {variantSelection.hasVariants
                     ? "Variante wählen"
@@ -434,8 +445,8 @@ export function RoutingWizard({
                 </h1>
                 <p className="article-page-description">
                   {variantSelection.hasVariants
-                    ? `Du hast ${displayProduct.sku} gescannt. Wähle Optionen aus — Vorschau, Artikelnummer und Preis aktualisieren sich live.`
-                    : `Du hast ${displayProduct.sku} gescannt. Prüfe die Produktdetails und wähle die gewünschte Menge.`}
+                    ? `Du hast ${displayProduct.sku} gescannt. Wähle Optionen und Menge — danach speicherst du den Artikel im Warenkorb.`
+                    : `Du hast ${displayProduct.sku} gescannt. Prüfe die Produktdetails, wähle die Menge und speichere den Artikel im Warenkorb.`}
                 </p>
               </>
             ) : null}
@@ -489,11 +500,17 @@ export function RoutingWizard({
                   type="button"
                   className={wishlistMode ? "cart-btn-primary" : "btn-primary"}
                   disabled={!variantSelection.isVariantSelectionComplete}
-                  onClick={() =>
-                    setStep(WIZARD_DEALER_STEP ?? WIZARD_ORDER_STEP)
-                  }
+                  onClick={() => {
+                    if (wishlistSkipsOrderStep && !WIZARD_HAENDLER_STEP_ENABLED) {
+                      finish();
+                      return;
+                    }
+                    setStep(afterProductStep);
+                  }}
                 >
-                  Weiter zur Bestellung →
+                  {wishlistMode && !WIZARD_HAENDLER_STEP_ENABLED
+                    ? "In Warenkorb speichern →"
+                    : "Weiter zur Bestellung →"}
                 </button>
               </div>
             </ProductDetailStep>
@@ -528,7 +545,7 @@ export function RoutingWizard({
               remember={remember}
               onRememberChange={setRemember}
               onBack={() => setStep(1)}
-              onNext={goToOrderStep}
+              onNext={wishlistSkipsOrderStep ? finish : goToOrderStep}
             />
           ) : (
             <HaendlerSelectionStep
@@ -537,31 +554,9 @@ export function RoutingWizard({
               remember={remember}
               onRememberChange={setRemember}
               onBack={() => setStep(1)}
-              onNext={goToOrderStep}
+              onNext={wishlistSkipsOrderStep ? finish : goToOrderStep}
             />
           ))}
-
-        {step === WIZARD_ORDER_STEP && wishlistMode ? (
-          <>
-            <p className="article-page-label">
-              Schritt {WIZARD_ORDER_STEP} von {WIZARD_ACTIVE_STEPS} · Bestellung
-            </p>
-            <h1 className="article-page-title">Menge & Gesamtbetrag</h1>
-            <p className="article-page-description">
-              Prüfe deine Auswahl und lege die Menge fest – danach gehst du
-              direkt zum Warenkorb.
-            </p>
-
-            <ArticleOrderStep
-              product={displayProduct}
-              quantity={quantity}
-              lineTotals={lineTotals}
-              onQuantityChange={setQuantity}
-              onBack={goBackFromOrder}
-              onSave={finish}
-            />
-          </>
-        ) : null}
 
         {step === WIZARD_ORDER_STEP && !wishlistMode ? (
           <div className="verteilseite">
@@ -672,12 +667,7 @@ export function RoutingWizard({
             </div>
 
             <div className="mt-4 rounded-lg bg-porcelain px-4 py-3 text-[13px] text-quinary">
-              {wishlistMode ? (
-                <>
-                  ℹ️ Deine Auswahl wird im Warenkorb gespeichert. Du wirst danach
-                  direkt zum Warenkorb weitergeleitet.
-                </>
-              ) : shopCheckoutEnabled ? (
+              {shopCheckoutEnabled ? (
                 <>
                   ℹ️ Du wirst mit deinen Artikeln zur Bestellung weitergeleitet, um die
                   Bestellung abzuschließen.
@@ -705,14 +695,12 @@ export function RoutingWizard({
               </button>
               <button type="button" className="btn-primary md:flex-1" onClick={finish}>
                 <span className="md:hidden">
-                  {wishlistMode ? "Speichern →" : shopCheckoutEnabled ? "Bestellen →" : "Anfrage →"}
+                  {shopCheckoutEnabled ? "Bestellen →" : "Anfrage →"}
                 </span>
                 <span className="hidden md:inline">
-                  {wishlistMode
-                    ? "In Warenkorb speichern →"
-                    : shopCheckoutEnabled
-                      ? "Zur Bestellung →"
-                      : "Anfrage senden →"}
+                  {shopCheckoutEnabled
+                    ? "Zur Bestellung →"
+                    : "Anfrage senden →"}
                 </span>
               </button>
             </div>
