@@ -76,3 +76,41 @@ export function calcBasketTotals(lines: BasketLineInput[]): {
     itemCount,
   };
 }
+
+/** Germany shipping (net) from basket net goods total. */
+export function calcGermanyShippingNet(subtotalExclTax: number): number {
+  if (subtotalExclTax <= 0) return 0;
+  if (subtotalExclTax <= 30) return 12.9; // €7.90 + €5
+  if (subtotalExclTax <= 100) return 7.9;
+  return 0;
+}
+
+export function calcBasketTotalsWithShipping(
+  lines: BasketLineInput[],
+  shippingTaxRate = 0.19
+): {
+  subtotalExclTax: number;
+  shippingNet: number;
+  goodsTaxAmount: number;
+  shippingTaxAmount: number;
+  taxAmount: number;
+  totalInclTax: number;
+  itemCount: number;
+} {
+  const basket = calcBasketTotals(lines);
+  const shippingNet = calcGermanyShippingNet(basket.subtotalExclTax);
+  const shippingTaxAmount = roundMoney(shippingNet * shippingTaxRate);
+  const taxAmount = roundMoney(basket.taxAmount + shippingTaxAmount);
+
+  return {
+    subtotalExclTax: basket.subtotalExclTax,
+    shippingNet,
+    goodsTaxAmount: basket.taxAmount,
+    shippingTaxAmount,
+    taxAmount,
+    totalInclTax: roundMoney(
+      basket.subtotalExclTax + shippingNet + taxAmount
+    ),
+    itemCount: basket.itemCount,
+  };
+}

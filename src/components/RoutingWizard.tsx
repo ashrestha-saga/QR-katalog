@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import {
   MOCK_HAENDLER,
@@ -19,7 +20,10 @@ import { DEFAULT_CATALOG_SLUG } from "@/lib/catalog-constants";
 import { isShopCheckoutEnabled } from "@/lib/order-mode";
 import { useGeo } from "@/hooks/useGeo";
 import { useVariantSelection } from "@/hooks/useVariantSelection";
-import type { ArticleConfiguration } from "@/lib/wishlist-session";
+import {
+  setCartAddedToast,
+  type ArticleConfiguration,
+} from "@/lib/wishlist-session";
 import {
   WIZARD_ACTIVE_STEPS,
   WIZARD_DEALER_STEP,
@@ -53,7 +57,7 @@ function stepDescription(step: number): string {
   if (step === WIZARD_ORDER_STEP) {
     return WIZARD_HAENDLER_STEP_ENABLED
       ? "Menge und Gesamtbetrag — Bestellung beim gewählten Händler."
-      : "Menge und Gesamtbetrag — danach Übergabe zur Bestellung.";
+      : "Menge und Gesamtbetrag — danach direkt zum Warenkorb.";
   }
   return "Deine Artikel werden zur Bestellung übergeben.";
 }
@@ -79,6 +83,7 @@ export function RoutingWizard({
   onSaveToCart,
   useShell = true,
 }: Props) {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [quantity, setQuantity] = useState(initialSelection?.quantity ?? 1);
@@ -190,6 +195,15 @@ export function RoutingWizard({
         config.remember = remember;
       }
       onSaveToCart(config);
+      if (catalogSlug) {
+        setCartAddedToast({
+          catalogSlug,
+          productName: displayProduct.name,
+          quantity,
+        });
+        router.push(`/c/${catalogSlug}/cart`);
+        return;
+      }
       setStep(WIZARD_SUCCESS_STEP);
       return;
     }
@@ -218,6 +232,8 @@ export function RoutingWizard({
     region,
     onComplete,
     shopCheckoutEnabled,
+    catalogSlug,
+    router,
   ]);
 
   const handleInquirySuccess = useCallback(() => {
@@ -532,8 +548,8 @@ export function RoutingWizard({
             </p>
             <h1 className="article-page-title">Menge & Gesamtbetrag</h1>
             <p className="article-page-description">
-              Prüfe deine Auswahl und lege die Menge fest – danach speicherst
-              du den Artikel im Warenkorb.
+              Prüfe deine Auswahl und lege die Menge fest – danach gehst du
+              direkt zum Warenkorb.
             </p>
 
             <ArticleOrderStep
@@ -646,10 +662,6 @@ export function RoutingWizard({
                 </span>
               </div>
               <div className="summary-row">
-                <span className="text-quinary">Versand</span>
-                <span className="font-medium">Kostenlos</span>
-              </div>
-              <div className="summary-row">
                 <span className="text-quinary">{formatTaxRate(lineTotals.taxRate)}</span>
                 <span className="font-medium">{formatEur(lineTotals.taxAmount)}</span>
               </div>
@@ -662,8 +674,8 @@ export function RoutingWizard({
             <div className="mt-4 rounded-lg bg-porcelain px-4 py-3 text-[13px] text-quinary">
               {wishlistMode ? (
                 <>
-                  ℹ️ Deine Auswahl wird im Warenkorb gespeichert. Du kannst danach
-                  weitere Artikel scannen oder zur Bestellübersicht wechseln.
+                  ℹ️ Deine Auswahl wird im Warenkorb gespeichert. Du wirst danach
+                  direkt zum Warenkorb weitergeleitet.
                 </>
               ) : shopCheckoutEnabled ? (
                 <>

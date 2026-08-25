@@ -138,6 +138,38 @@ export function clearCart(catalogSlug: string): void {
   dispatchCartUpdated();
 }
 
+const CART_ADDED_TOAST_KEY = "katalog_cart_added_toast";
+
+export type CartAddedToast = {
+  catalogSlug: string;
+  productName: string;
+  quantity: number;
+};
+
+export function setCartAddedToast(toast: CartAddedToast): void {
+  if (typeof sessionStorage === "undefined") return;
+  sessionStorage.setItem(CART_ADDED_TOAST_KEY, JSON.stringify(toast));
+}
+
+/** Read and clear a one-shot “item added” toast for the given catalog. */
+export function consumeCartAddedToast(
+  catalogSlug: string
+): CartAddedToast | null {
+  if (typeof sessionStorage === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(CART_ADDED_TOAST_KEY);
+    if (!raw) return null;
+    sessionStorage.removeItem(CART_ADDED_TOAST_KEY);
+    const parsed = JSON.parse(raw) as CartAddedToast;
+    if (parsed.catalogSlug !== catalogSlug) return null;
+    if (!parsed.productName || !parsed.quantity) return null;
+    return parsed;
+  } catch {
+    sessionStorage.removeItem(CART_ADDED_TOAST_KEY);
+    return null;
+  }
+}
+
 /** @deprecated use getCartLines */
 export function getWishlistLines(catalogSlug: string) {
   return getCartLines(catalogSlug).map((l) => ({

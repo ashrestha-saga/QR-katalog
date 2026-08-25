@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Skip the post-save “Weiterleitung” step: saving from the order step goes straight to the Warenkorb.
+- Move Germany shipping (Versand) from the article order step into the cart summary, with net tiers (≤€30 → €12.90, ≤€100 → €7.90, >€100 → free).
+
+### Added
+
+- Toast on the cart after adding an item (“Artikel hinzugefügt”), shown at the top of the page.
+
 ## [1.0.0] - 2026-06-23
 
 First stable release of the catalog QR routing web app.

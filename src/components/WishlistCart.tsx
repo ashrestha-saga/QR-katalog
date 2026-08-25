@@ -6,14 +6,20 @@ import type { Catalog } from "@/lib/catalog";
 import { setCatalogSession } from "@/lib/catalog-session";
 import { type Product } from "@/lib/mock-data";
 import { WIZARD_HAENDLER_STEP_ENABLED } from "@/lib/wizard-config";
-import { calcBasketTotals, calcLineTotals, formatEur } from "@/lib/pricing";
+import {
+  calcBasketTotalsWithShipping,
+  calcLineTotals,
+  formatEur,
+} from "@/lib/pricing";
 import {
   buildCartLineEditHref,
   clearCart,
+  consumeCartAddedToast,
   getCartLine,
   getCartLines,
   removeCartLine,
   upsertCartLine,
+  type CartAddedToast,
   type ConfiguredCartLine,
 } from "@/lib/wishlist-session";
 import { isShopCheckoutEnabled } from "@/lib/order-mode";
@@ -176,7 +182,7 @@ function CartLineRow({
 
 type CartSummaryProps = {
   catalog: Catalog;
-  basketTotals: ReturnType<typeof calcBasketTotals>;
+  basketTotals: ReturnType<typeof calcBasketTotalsWithShipping>;
   taxRateLabel: number;
   shopCheckoutEnabled: boolean;
   submitting: boolean;
@@ -205,6 +211,14 @@ function CartSummary({
         <div className="cart-summary-row">
           <span>Summe Artikel (netto)</span>
           <span>{formatEur(basketTotals.subtotalExclTax)}</span>
+        </div>
+        <div className="cart-summary-row">
+          <span>Versand (netto)</span>
+          <span className="font-semibold text-primary">
+            {basketTotals.shippingNet > 0
+              ? formatEur(basketTotals.shippingNet)
+              : "Kostenlos"}
+          </span>
         </div>
         <div className="cart-summary-row">
           <span>zzgl. {taxRateLabel} % MwSt.</span>
@@ -258,6 +272,7 @@ export function WishlistCart({ catalog }: Props) {
   const [redirects, setRedirects] = useState<RedirectEntry[] | null>(null);
   const [showInquiryModal, setShowInquiryModal] = useState(false);
   const [inquirySubmitted, setInquirySubmitted] = useState(false);
+  const [addedToast, setAddedToast] = useState<CartAddedToast | null>(null);
   const shopCheckoutEnabled = isShopCheckoutEnabled();
 
   const refreshLines = useCallback(() => {
@@ -276,7 +291,15 @@ export function WishlistCart({ catalog }: Props) {
     setCatalogSession(catalog.slug);
     refreshLines();
     setHydrated(true);
+    const toast = consumeCartAddedToast(catalog.slug);
+    if (toast) setAddedToast(toast);
   }, [catalog.slug, refreshLines]);
+
+  useEffect(() => {
+    if (!addedToast) return;
+    const timer = window.setTimeout(() => setAddedToast(null), 4000);
+    return () => window.clearTimeout(timer);
+  }, [addedToast]);
 
   useEffect(() => {
     const missingSkus = lines
@@ -350,6 +373,16 @@ export function WishlistCart({ catalog }: Props) {
     };
   }, [redirectCountdown, redirects, isRedirecting]);
 
+  const shippingTaxRate = useMemo(() => {
+    const firstLine = lines.find(
+      (line) => products[line.sku] ?? line.product
+    );
+    const product = firstLine
+      ? products[firstLine.sku] ?? firstLine.product
+      : null;
+    return product?.taxRate ?? 0.19;
+  }, [lines, products]);
+
   const basketTotals = useMemo(() => {
     const priced = lines
       .map((line) => {
@@ -362,19 +395,10 @@ export function WishlistCart({ catalog }: Props) {
         };
       })
       .filter((x): x is NonNullable<typeof x> => x !== null);
-    return calcBasketTotals(priced);
-  }, [lines, products]);
+    return calcBasketTotalsWithShipping(priced, shippingTaxRate);
+  }, [lines, products, shippingTaxRate]);
 
-  const taxRateLabel = useMemo(() => {
-    const firstLine = lines.find(
-      (line) => products[line.sku] ?? line.product
-    );
-    const product = firstLine
-      ? products[firstLine.sku] ?? firstLine.product
-      : null;
-    const rate = product?.taxRate ?? 0.19;
-    return Math.round(rate * 100);
-  }, [lines, products]);
+  const taxRateLabel = Math.round(shippingTaxRate * 100);
 
   function removeLine(sku: string) {
     removeCartLine(catalog.slug, sku);
@@ -588,6 +612,28 @@ export function WishlistCart({ catalog }: Props) {
         unifiedCard
       >
         <div className="cart-page">
+          {addedToast ? (
+            <div className="cart-toast" role="status" aria-live="polite">
+              <span className="cart-toast-icon" aria-hidden>
+                ✓
+              </span>
+              <div className="min-w-0">
+                <p className="cart-toast-title">Artikel hinzugefügt</p>
+                <p className="cart-toast-detail">
+                  {addedToast.quantity}× {addedToast.productName}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="cart-toast-dismiss"
+                onClick={() => setAddedToast(null)}
+                aria-label="Hinweis schließen"
+              >
+                ×
+              </button>
+            </div>
+          ) : null}
+
           <p className="cart-page-label">Warenkorb</p>
           <h1 className="cart-page-title">Dein Warenkorb</h1>
 

@@ -400,6 +400,41 @@ body {
     @apply rounded-xl bg-accent-mint/60 p-8 text-center;
   }
 
+  .cart-toast {
+    @apply fixed top-6 left-1/2 z-50 flex w-[min(100%-2rem,24rem)] -translate-x-1/2 items-start gap-3 rounded-xl border border-accent-success-text/15 bg-accent-success-bg px-4 py-3 shadow-stage animate-cart-toast;
+  }
+
+  .cart-toast-icon {
+    @apply mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-success-text text-xs font-bold text-white;
+  }
+
+  .cart-toast-title {
+    @apply text-sm font-semibold text-accent-success-text;
+  }
+
+  .cart-toast-detail {
+    @apply mt-0.5 truncate text-xs text-accent-success-muted;
+  }
+
+  .cart-toast-dismiss {
+    @apply ml-auto shrink-0 text-lg leading-none text-accent-success-muted transition hover:text-accent-success-text;
+  }
+
+  @keyframes cart-toast-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -12px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+
+  .animate-cart-toast {
+    animation: cart-toast-in 0.28s ease-out;
+  }
+
   .inquiry-modal-overlay {
     @apply fixed inset-0 z-50 flex items-end bg-secondary/40 p-0 backdrop-blur-sm md:items-center md:justify-center md:p-6;
   }
