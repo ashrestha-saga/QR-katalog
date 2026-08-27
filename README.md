@@ -13,7 +13,6 @@ deployed as its own instance and configured entirely through environment variabl
 ## Setup
 
 ```bash
-cd apps/web
 npm install
 cp .env.example .env.local   # then fill in per-company values
 npm run dev
