@@ -1,5 +1,6 @@
 import type { OxidVariantRecord, Product } from "@/lib/mock-data";
 import { getMerzljakImageBaseUrl } from "./config";
+import { sanitizeDescriptionHtml } from "./sanitize-rich-html";
 
 type OxidArticleRecord = Record<string, unknown>;
 
@@ -26,13 +27,61 @@ function pickNumber(record: OxidArticleRecord, keys: string[]): number | null {
   return null;
 }
 
+const FEATURE_HTML_TAGS = new Set([
+  "ul",
+  "ol",
+  "li",
+  "p",
+  "br",
+  "strong",
+  "em",
+  "b",
+  "i",
+  "span",
+  "div",
+]);
+
 function decodeHtmlEntities(value: string): string {
-  return value
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
+  let decoded = value;
+  for (let i = 0; i < 2; i++) {
+    decoded = decoded
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&amp;/g, "&");
+  }
+  return decoded;
+}
+
+function sanitizeFeatureHtml(value: string | null): string | undefined {
+  if (!value) return undefined;
+
+  const decoded = decodeHtmlEntities(value)
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
+    .replace(/<\/?([a-z0-9]+)(\s[^>]*)?>/gi, (match, tag: string) => {
+      const name = tag.toLowerCase();
+      if (!FEATURE_HTML_TAGS.has(name)) return "";
+      if (match.startsWith("</")) return `</${name}>`;
+      if (name === "br") return "<br>";
+      return `<${name}>`;
+    })
+    .trim();
+
+  return decoded || undefined;
+}
+
+function mapDescriptionHtml(record: OxidArticleRecord): string | undefined {
+  const mwvrtc = sanitizeDescriptionHtml(
+    pickString(record, ["mwvrtc", "MWVRTC"])
+  );
+  if (mwvrtc) return mwvrtc;
+
+  return sanitizeDescriptionHtml(
+    pickString(record, ["oxlongdesc", "OXLONGDESC", "description"])
+  );
 }
 
 function htmlToText(value: string | null): string | undefined {
@@ -99,6 +148,10 @@ function mapVariantRecord(record: OxidArticleRecord): OxidVariantRecord | null {
   const oxpic1 = pickString(record, ["oxpic1", "OXPIC1"]) ?? "";
   const oxstock = pickNumber(record, ["oxstock", "OXSTOCK"]) ?? -1;
   const mpzn = pickString(record, ["mpzn", "MPZN"]);
+  const featureHtml = sanitizeFeatureHtml(
+    pickString(record, ["mwvfeature", "MWVFEATURE"])
+  );
+  const descriptionHtml = mapDescriptionHtml(record);
 
   if (!oxartnum || !oxvarselect || !oxid || !oxtitle) return null;
 
@@ -114,6 +167,8 @@ function mapVariantRecord(record: OxidArticleRecord): OxidVariantRecord | null {
     oxstock,
     oxvarselect,
     ...(mpzn ? { mpzn } : {}),
+    ...(featureHtml ? { featureHtml } : {}),
+    ...(descriptionHtml ? { descriptionHtml } : {}),
     ...(imageUrls[0] ? { thumbnailUrl: imageUrls[0] } : {}),
     ...(imageUrls.length > 0 ? { imageUrls } : {}),
   };
@@ -174,6 +229,10 @@ export function mapOxidArticleToProduct(
     "shortDescription",
   ]);
   const details = pickString(record, ["nxsdetails", "mwvktext", "details"]);
+  const featureHtml = sanitizeFeatureHtml(
+    pickString(record, ["mwvfeature", "MWVFEATURE"])
+  );
+  const descriptionHtml = mapDescriptionHtml(record);
   const modelType = pickString(record, ["mwvpspez", "modelType", "type"]);
   const deliveryScope = pickString(record, [
     "mdeliveryscope",
@@ -185,9 +244,9 @@ export function mapOxidArticleToProduct(
     "OXVARSELECT",
     "variant",
   ]);
-  const description =
-    htmlToText(pickString(record, ["oxlongdesc", "mwvfeature", "description"])) ??
-    htmlToText(details);
+  const description = htmlToText(
+    pickString(record, ["oxlongdesc", "description"])
+  );
   const categories = getCategoryNames(record);
   const oxvarname = pickString(record, ["oxvarname", "OXVARNAME"]);
   const variants = mapVariants(record);
@@ -199,7 +258,9 @@ export function mapOxidArticleToProduct(
     name,
     ...(shortDescription ? { shortDescription } : {}),
     ...(description ? { description } : {}),
+    ...(descriptionHtml ? { descriptionHtml } : {}),
     ...(details ? { details } : {}),
+    ...(featureHtml ? { featureHtml } : {}),
     ...(modelType ? { modelType } : {}),
     ...(deliveryScope ? { deliveryScope } : {}),
     ...(unitName ? { unitName } : {}),

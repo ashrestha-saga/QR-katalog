@@ -27,6 +27,8 @@ export function mapVariantToDisplayProduct(
     mpzn: variant.mpzn,
     thumbnailUrl: thumbnailUrl ?? parent.thumbnailUrl,
     imageUrls: imageUrls.length > 0 ? imageUrls : parent.imageUrls,
+    featureHtml: variant.featureHtml ?? parent.featureHtml,
+    descriptionHtml: variant.descriptionHtml ?? parent.descriptionHtml,
     oxvarname: undefined,
     variants: undefined,
   };
