@@ -31,9 +31,11 @@ type VariantSelectorProps = Pick<
 function ProductImageCarousel({
   product,
   tall = false,
+  compact = false,
 }: {
   product: Product;
   tall?: boolean;
+  compact?: boolean;
 }) {
   const images =
     product.imageUrls && product.imageUrls.length > 0
@@ -64,9 +66,13 @@ function ProductImageCarousel({
 
   return (
     <div
-      className={
-        tall ? "article-preview-card article-preview-card--tall" : "article-preview-card"
-      }
+      className={[
+        "article-preview-card",
+        tall ? "article-preview-card--tall" : "",
+        compact ? "article-preview-card--modal" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
       <div className="article-preview-header">
         <span className="article-preview-label">Vorschau</span>
@@ -77,18 +83,27 @@ function ProductImageCarousel({
       </div>
 
       <div
-        className={
-          tall ? "article-preview-stage article-preview-stage--tall" : "article-preview-stage"
-        }
+        className={[
+          "article-preview-stage",
+          tall ? "article-preview-stage--tall" : "",
+          compact ? "article-preview-stage--modal" : "",
+          compact && !hasMultipleImages ? "article-preview-stage--modal-single" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
       >
         {activeImage ? (
           <img
             key={activeImage}
             src={activeImage}
             alt={`${product.name} Produktbild ${activeIndex + 1}`}
-            className={
-              tall ? "article-preview-image article-preview-image--tall" : "article-preview-image"
-            }
+            className={[
+              "article-preview-image",
+              tall ? "article-preview-image--tall" : "",
+              compact ? "article-preview-image--modal" : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
           />
         ) : (
           <div className="article-preview-placeholder" aria-hidden>
@@ -102,7 +117,12 @@ function ProductImageCarousel({
               type="button"
               onClick={goToPrevious}
               aria-label="Vorheriges Produktbild"
-              className="article-preview-nav article-preview-nav-prev"
+              className={[
+                "article-preview-nav article-preview-nav-prev",
+                compact ? "article-preview-nav--modal" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
             >
               ‹
             </button>
@@ -110,7 +130,12 @@ function ProductImageCarousel({
               type="button"
               onClick={goToNext}
               aria-label="Nächstes Produktbild"
-              className="article-preview-nav article-preview-nav-next"
+              className={[
+                "article-preview-nav article-preview-nav-next",
+                compact ? "article-preview-nav--modal" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
             >
               ›
             </button>
@@ -139,6 +164,26 @@ function ProductImageCarousel({
   );
 }
 
+function InfoIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 16v-4" />
+      <path d="M12 8h.01" />
+    </svg>
+  );
+}
+
 function ArticleProductCard({
   product,
   onOpenDetails,
@@ -159,8 +204,92 @@ function ArticleProductCard({
         className="article-product-details-link"
         onClick={onOpenDetails}
       >
+        <InfoIcon />
         Produktdetails ansehen
       </button>
+    </div>
+  );
+}
+
+function ProductFeatureHtml({ html }: { html: string }) {
+  return (
+    <section className="product-feature-block">
+      <h3 className="product-feature-heading">Eigenschaft</h3>
+      <div
+        className="product-feature-body"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    </section>
+  );
+}
+
+function ProductDetailCopy({ product }: { product: Product }) {
+  const hasMeta =
+    shouldShowShortDescription(product) ||
+    product.descriptionHtml ||
+    product.details ||
+    product.modelType ||
+    product.unitName ||
+    product.categories?.length;
+
+  return (
+    <div className="product-detail-modal-copy">
+      {shouldShowShortDescription(product) && (
+        <section className="rounded-xl p-2">
+          <h3 className="mb-1 text-sm font-semibold">Kurzbeschreibung</h3>
+          <p className="leading-relaxed text-black">
+            {product.shortDescription}
+          </p>
+        </section>
+      )}
+
+      {product.descriptionHtml ? (
+        <section className="rounded-xl p-2">
+          <h3 className="mb-1 text-sm font-semibold">Beschreibung</h3>
+          <div
+            className="product-description-body"
+            dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
+          />
+        </section>
+      ) : null}
+
+      {product.details && product.details !== product.description && (
+        <section className="rounded-xl p-2">
+          <h3 className="mb-1 text-sm font-semibold">Details</h3>
+          <p className="leading-relaxed text-black">{product.details}</p>
+        </section>
+      )}
+
+      {product.unitName && !product.variant ? (
+        <section className="rounded-xl p-2">
+          <h3 className="mb-1 text-sm font-semibold">
+            Verpackungseinheit (VE)
+          </h3>
+          <p className="leading-relaxed text-quinary">{product.unitName}</p>
+        </section>
+      ) : null}
+
+      {product.categories && product.categories.length > 0 && (
+        <section className="rounded-xl border border-mercury bg-cart-line p-3">
+          <h3 className="mb-2 text-sm font-semibold">Kategorien</h3>
+          <div className="flex flex-wrap gap-2">
+            {product.categories.map((category) => (
+              <span
+                key={category}
+                className="rounded-full bg-accent-mint px-3 py-1 text-xs font-medium text-primary"
+              >
+                {category}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {!hasMeta && (
+        <p className="rounded-xl border border-mercury bg-cart-line p-4 text-quinary">
+          Keine weiteren Produktdetails verfügbar.
+        </p>
+      )}
     </div>
   );
 }
@@ -184,12 +313,9 @@ function ProductDetailModal({
   }, [onClose]);
 
   const variantLine = formatVariantWithUnit(product);
-  const hasMeta =
-    shouldShowShortDescription(product) ||
-    product.details ||
-    product.modelType ||
-    product.unitName ||
-    product.categories?.length;
+  const hasVariants = variantSelection?.hasVariants ?? false;
+  const featureHtml = product.featureHtml?.trim();
+  const showDetailsBelow = hasVariants || Boolean(featureHtml);
 
   return (
     <div
@@ -200,7 +326,7 @@ function ProductDetailModal({
       onMouseDown={onClose}
     >
       <div
-        className="inquiry-modal-panel md:max-w-3xl"
+        className="inquiry-modal-panel product-detail-modal-panel"
         onMouseDown={(event) => event.stopPropagation()}
       >
         <header className="inquiry-modal-header">
@@ -227,76 +353,32 @@ function ProductDetailModal({
         </header>
 
         <div className="inquiry-modal-body space-y-5">
-          {variantSelection?.hasVariants ? (
-            <VariantSelector
-              labels={variantSelection.labels}
-              selectedValues={variantSelection.selectedValues}
-              optionsByIndex={variantSelection.optionsByIndex}
-              availableByIndex={variantSelection.availableByIndex}
-              onSelectValue={variantSelection.onSelectValue}
-            />
-          ) : null}
-
-          <ProductImageCarousel product={product} />
-
-
-          <div className="grid gap-3 text-sm text-secondary">
-            {shouldShowShortDescription(product) && (
-              <section className="rounded-xl  p-2">
-                <h3 className="mb-1 text-sm font-semibold">Kurzbeschreibung</h3>
-                <p className="leading-relaxed text-black">
-                  {product.shortDescription}
-                </p>
-              </section>
-            )}
-
-            {product.description && (
-              <section className="rounded-xl  p-2">
-                <h3 className="mb-1 text-sm font-semibold">Beschreibung</h3>
-                <p className="whitespace-pre-line leading-relaxed text-black">
-                  {product.description}
-                </p>
-              </section>
-            )}
-
-            {product.details && product.details !== product.description && (
-              <section className="rounded-xl  p-2">
-                <h3 className="mb-1 text-sm font-semibold">Details</h3>
-                <p className="leading-relaxed text-black">{product.details}</p>
-              </section>
-            )}
-
-            {product.unitName && !product.variant ? (
-              <section className="rounded-xl  p-2">
-                <h3 className="mb-1 text-sm font-semibold">
-                  Verpackungseinheit (VE)
-                </h3>
-                <p className="leading-relaxed text-quinary">{product.unitName}</p>
-              </section>
-            ) : null}
-
-            {product.categories && product.categories.length > 0 && (
-              <section className="rounded-xl border border-mercury bg-cart-line p-3">
-                <h3 className="mb-2 text-sm font-semibold">Kategorien</h3>
-                <div className="flex flex-wrap gap-2">
-                  {product.categories.map((category) => (
-                    <span
-                      key={category}
-                      className="rounded-full bg-accent-mint px-3 py-1 text-xs font-medium text-primary"
-                    >
-                      {category}
-                    </span>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {!hasMeta && (
-              <p className="rounded-xl border border-mercury bg-cart-line p-4 text-quinary">
-                Keine weiteren Produktdetails verfügbar.
-              </p>
-            )}
+          <div className="product-detail-modal-split">
+            <div className="product-detail-modal-media">
+              <ProductImageCarousel product={product} compact />
+            </div>
+            <div className="product-detail-modal-config">
+              {hasVariants && variantSelection ? (
+                <>
+                  {featureHtml ? (
+                    <ProductFeatureHtml html={featureHtml} />
+                  ) : null}
+                  <VariantSelector
+                    labels={variantSelection.labels}
+                    selectedValues={variantSelection.selectedValues}
+                    optionsByIndex={variantSelection.optionsByIndex}
+                    availableByIndex={variantSelection.availableByIndex}
+                    onSelectValue={variantSelection.onSelectValue}
+                  />
+                </>
+              ) : featureHtml ? (
+                <ProductFeatureHtml html={featureHtml} />
+              ) : (
+                <ProductDetailCopy product={product} />
+              )}
+            </div>
           </div>
+          {showDetailsBelow ? <ProductDetailCopy product={product} /> : null}
         </div>
       </div>
     </div>

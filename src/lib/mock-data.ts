@@ -17,6 +17,10 @@ export type OxidVariantRecord = {
   oxvarselect: string;
   /** Pharmazentralnummer (PZN), when provided by OXID */
   mpzn?: string;
+  /** Decoded/sanitized HTML from OXID mwvfeature */
+  featureHtml?: string;
+  /** Beschreibung HTML from mwvrtc, else sanitized oxlongdesc */
+  descriptionHtml?: string;
   /** Resolved server-side — image host env is not available in the browser */
   thumbnailUrl?: string;
   imageUrls?: string[];
@@ -33,6 +37,10 @@ export type Product = {
   shortDescription?: string;
   description?: string;
   details?: string;
+  /** Beschreibung HTML from mwvrtc, else sanitized oxlongdesc */
+  descriptionHtml?: string;
+  /** Decoded/sanitized HTML from OXID mwvfeature */
+  featureHtml?: string;
   modelType?: string;
   deliveryScope?: string;
   /** Packaging unit (VE), e.g. "240 Stück" — from OXID oxunitname */
