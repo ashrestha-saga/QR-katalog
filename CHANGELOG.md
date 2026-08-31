@@ -7,14 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Inquiry catalog mode (`NEXT_PUBLIC_CATALOG_ORDER_MODE=inquiry`): scan-only article entry (no manual Bestellnummer), no Warenkorb route or cart icon, and inquiry-specific landing copy and steps.
+- Toast on the cart after adding an item (“Artikel hinzugefügt”), shown at the top of the page.
+- `.DS_Store` entries to `.gitignore`.
+
 ### Changed
 
 - Skip the post-save “Weiterleitung” step: saving from the order step goes straight to the Warenkorb.
 - Move Germany shipping (Versand) from the article order step into the cart summary, with net tiers (≤€30 → €12.90, ≤€100 → €7.90, >€100 → free).
+- `/c/{slug}/cart` and legacy `/c/{slug}/review` redirect to catalog landing when inquiry mode is active.
+- `CatalogAppShell` hides the header cart icon in inquiry mode.
+- `ArticleQrScanner` shows camera scan only in inquiry mode (manual SKU entry and fallback info bar remain in shop mode).
+- `CatalogLanding` uses inquiry-specific steps and description when inquiry mode is active.
+- `ArticleConfigure` skips cart duplicate warning and cart save callback in inquiry mode.
 
-### Added
+### Fixed
 
-- Toast on the cart after adding an item (“Artikel hinzugefügt”), shown at the top of the page.
+- `POST /api/basket` import: use `getOrderMode` from `@/lib/order-mode` (build was failing on missing `getOrderModeFromRequest`).
+
+### Removed
+
+- Unused `OrderModeProvider` (referenced missing `demo-order-mode` / `resolveOrderMode` modules).
+- macOS `.DS_Store` files from the workspace.
 
 ## [1.0.0] - 2026-06-23
 
