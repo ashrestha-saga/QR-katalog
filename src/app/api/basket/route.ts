@@ -4,7 +4,7 @@ import {
   buildTargetUrl,
   getHaendler,
 } from "@/lib/mock-data";
-import { getOrderModeFromRequest } from "@/lib/order-mode";
+import { getOrderMode } from "@/lib/order-mode";
 import { fetchArticleBySku } from "@/lib/product-source";
 import {
   buildOxidAddToCartUrl,
