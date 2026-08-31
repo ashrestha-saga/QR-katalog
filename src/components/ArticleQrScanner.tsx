@@ -7,6 +7,7 @@ import {
   parseArticleSkuFromQr,
   setCatalogSession,
 } from "@/lib/catalog-session";
+import { isInquiryCatalogMode } from "@/lib/order-mode";
 import { CatalogAppShell } from "./CatalogAppShell";
 
 const READER_ID = "article-qr-reader";
@@ -21,6 +22,7 @@ type Props = {
 
 export function ArticleQrScanner({ catalog }: Props) {
   const router = useRouter();
+  const inquiryOnly = isInquiryCatalogMode();
   const scannerRef = useRef<InstanceType<
     Awaited<typeof import("html5-qrcode")>["Html5Qrcode"]
   > | null>(null);
@@ -160,10 +162,12 @@ export function ArticleQrScanner({ catalog }: Props) {
       clearReaderElement();
       setStatus("idle");
       setCameraError(
-        "Kamera auf diesem Gerät nicht verfügbar (z. B. Desktop ohne Webcam). Bitte Artikelnummer manuell eingeben."
+        inquiryOnly
+          ? "Kamera auf diesem Gerät nicht verfügbar. Bitte ein Gerät mit Kamera verwenden."
+          : "Kamera auf diesem Gerät nicht verfügbar (z. B. Desktop ohne Webcam). Bitte Artikelnummer manuell eingeben."
       );
     }
-  }, [cleanupScanner, clearReaderElement, handleScanSuccess]);
+  }, [cleanupScanner, clearReaderElement, handleScanSuccess, inquiryOnly]);
 
   const stopScanner = useCallback(async () => {
     await cleanupScanner();
@@ -197,11 +201,12 @@ export function ArticleQrScanner({ catalog }: Props) {
         <p className="scan-catalog-label">{catalogLabel}</p>
         <h1 className="scan-page-title">Artikel aus dem Katalog laden</h1>
         <p className="scan-page-description">
-          Scanne den QR-Code neben dem Produkt – oder gib die Bestellnummer
-          direkt ein. Beide Wege führen zu denselben Artikeldetails.
+          {inquiryOnly
+            ? "Scanne den QR-Code neben dem Produkt im Printkatalog, um die Artikeldetails zu laden."
+            : "Scanne den QR-Code neben dem Produkt – oder gib die Bestellnummer direkt ein. Beide Wege führen zu denselben Artikeldetails."}
         </p>
 
-        <div className="scan-options">
+        <div className={inquiryOnly ? undefined : "scan-options"}>
           <section className="scan-option-card scan-option-card-qr" aria-label="QR-Code scannen">
             <div className="scan-option-header">
               <div className="scan-option-icon" aria-hidden>
@@ -243,91 +248,100 @@ export function ArticleQrScanner({ catalog }: Props) {
             )}
 
             {cameraError ? <p className="geo-warn mt-3">{cameraError}</p> : null}
+            {inquiryOnly && manualError ? (
+              <p className="geo-warn mt-3">{manualError}</p>
+            ) : null}
           </section>
 
-          <div className="scan-options-divider" aria-hidden>
-            <span>oder</span>
-          </div>
-
-          <section
-            className="scan-option-card scan-option-card-manual"
-            aria-label="Bestellnummer eingeben"
-          >
-            <div className="scan-option-header">
-              <div className="scan-option-icon" aria-hidden>
-                <ArticleListIcon />
+          {!inquiryOnly ? (
+            <>
+              <div className="scan-options-divider" aria-hidden>
+                <span>oder</span>
               </div>
-              <div className="min-w-0">
-                <h2 className="scan-option-title">Bestellnummer eingeben</h2>
-                <p className="scan-option-subtitle">
-                  Du kennst die Artikel-Nr.? Direkt eintippen – ohne Scan.
-                </p>
-              </div>
-            </div>
 
-            <form
-              className="scan-manual-form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                submitManual();
-              }}
-            >
-              <label className="scan-manual-label" htmlFor="manual-sku">
-                Artikelnummer
-              </label>
-              <div className="scan-manual-row">
-                <input
-                  id="manual-sku"
-                  type="text"
-                  value={manualSku}
-                  onChange={(e) => {
-                    setManualSku(e.target.value);
-                    if (manualError) setManualError(null);
+              <section
+                className="scan-option-card scan-option-card-manual"
+                aria-label="Bestellnummer eingeben"
+              >
+                <div className="scan-option-header">
+                  <div className="scan-option-icon" aria-hidden>
+                    <ArticleListIcon />
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="scan-option-title">Bestellnummer eingeben</h2>
+                    <p className="scan-option-subtitle">
+                      Du kennst die Artikel-Nr.? Direkt eintippen – ohne Scan.
+                    </p>
+                  </div>
+                </div>
+
+                <form
+                  className="scan-manual-form"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    submitManual();
                   }}
-                  placeholder="z. B. VA-170520"
-                  className="input-field"
-                  autoComplete="off"
-                />
-                <button
-                  type="submit"
-                  className="btn-primary btn-inline scan-submit-btn"
-                  disabled={lookupLoading}
                 >
-                  {lookupLoading ? "Lädt…" : "Anzeigen"}
-                </button>
-              </div>
-            </form>
+                  <label className="scan-manual-label" htmlFor="manual-sku">
+                    Artikelnummer
+                  </label>
+                  <div className="scan-manual-row">
+                    <input
+                      id="manual-sku"
+                      type="text"
+                      value={manualSku}
+                      onChange={(e) => {
+                        setManualSku(e.target.value);
+                        if (manualError) setManualError(null);
+                      }}
+                      placeholder="z. B. VA-170520"
+                      className="input-field"
+                      autoComplete="off"
+                    />
+                    <button
+                      type="submit"
+                      className="btn-primary btn-inline scan-submit-btn"
+                      disabled={lookupLoading}
+                    >
+                      {lookupLoading ? "Lädt…" : "Anzeigen"}
+                    </button>
+                  </div>
+                </form>
 
-            <div className="scan-examples">
-              <span className="scan-examples-label">Beispiele:</span>
-              <div className="scan-example-pills">
-                {EXAMPLE_SKUS.map((sku) => (
-                  <button
-                    key={sku}
-                    type="button"
-                    className="scan-example-pill"
-                    onClick={() => {
-                      setManualSku(sku);
-                      if (manualError) setManualError(null);
-                    }}
-                  >
-                    {sku}
-                  </button>
-                ))}
-              </div>
-            </div>
+                <div className="scan-examples">
+                  <span className="scan-examples-label">Beispiele:</span>
+                  <div className="scan-example-pills">
+                    {EXAMPLE_SKUS.map((sku) => (
+                      <button
+                        key={sku}
+                        type="button"
+                        className="scan-example-pill"
+                        onClick={() => {
+                          setManualSku(sku);
+                          if (manualError) setManualError(null);
+                        }}
+                      >
+                        {sku}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-            {manualError ? <p className="geo-warn mt-3">{manualError}</p> : null}
-          </section>
+                {manualError ? <p className="geo-warn mt-3">{manualError}</p> : null}
+              </section>
+            </>
+          ) : null}
         </div>
 
-        <div className="scan-info-bar">
-          <InfoIcon />
-          <p>
-            QR beschädigt oder nicht lesbar? Nutze einfach die Bestellnummer aus
-            dem Katalog – das Ergebnis ist identisch.
-          </p>
-        </div>
+        {!inquiryOnly ? (
+          <div className="scan-info-bar">
+            <InfoIcon />
+            <p>
+              QR beschädigt oder nicht lesbar? Nutze einfach die Bestellnummer aus
+              dem Katalog – das Ergebnis ist identisch.
+            </p>
+          </div>
+        ) : null}
       </div>
     </CatalogAppShell>
   );

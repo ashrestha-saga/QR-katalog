@@ -8,6 +8,10 @@ import {
   type InquirySalutation,
 } from "@/lib/inquiry-form-constants";
 import type { Product } from "@/lib/mock-data";
+import type {
+  InquirySuccessItem,
+  InquirySuccessSummary,
+} from "@/lib/order-inquiry-types";
 import { formatVariantWithUnit } from "@/lib/product-format";
 import { calcBasketTotals, calcLineTotals, formatEur } from "@/lib/pricing";
 
@@ -21,7 +25,7 @@ type Props = {
   catalogSlug: string;
   lines: InquiryLine[];
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (summary: InquirySuccessSummary) => void;
 };
 
 type FormState = {
@@ -183,6 +187,7 @@ export function OrderInquiryModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           catalog: catalogSlug,
+          formType: "legacy",
           customer: {
             facility: form.facility,
             position: form.position || undefined,
@@ -207,14 +212,43 @@ export function OrderInquiryModal({
         }),
       });
 
-      const data = (await res.json()) as { ok?: boolean; error?: string };
+      const data = (await res.json()) as {
+        ok?: boolean;
+        error?: string;
+        inquiryNumber?: string;
+      };
 
       if (!res.ok) {
         setError(data.error ?? "Anfrage konnte nicht gesendet werden.");
         return;
       }
 
-      onSuccess();
+      const items: InquirySuccessItem[] = lines.map((line) => {
+        const product = line.product;
+        const configuration = product
+          ? formatVariantWithUnit(product) ?? undefined
+          : undefined;
+        return {
+          name: product?.name ?? `Artikel ${line.sku}`,
+          configuration,
+          quantity: line.quantity,
+          unitName: product?.unitName,
+        };
+      });
+
+      const firstName = form.firstName.trim();
+      const lastName = form.lastName.trim();
+      const summary: InquirySuccessSummary = {
+        inquiryNumber: data.inquiryNumber ?? "",
+        email: form.email.trim(),
+        customerName: `${firstName} ${lastName}`.trim(),
+        facility: form.facility.trim(),
+        postalCode: form.postalCode.trim() || undefined,
+        message: form.message.trim() || undefined,
+        items,
+      };
+
+      onSuccess(summary);
     } catch {
       setError("Netzwerkfehler. Bitte erneut versuchen.");
     } finally {

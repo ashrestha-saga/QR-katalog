@@ -17,7 +17,7 @@ import {
 } from "@/lib/pricing";
 import { setHaendlerCookie } from "@/lib/cookies";
 import { DEFAULT_CATALOG_SLUG } from "@/lib/catalog-constants";
-import { isShopCheckoutEnabled } from "@/lib/order-mode";
+import { isInquiryCatalogMode, isShopCheckoutEnabled } from "@/lib/order-mode";
 import { useGeo } from "@/hooks/useGeo";
 import { useVariantSelection } from "@/hooks/useVariantSelection";
 import {
@@ -32,6 +32,7 @@ import {
   WIZARD_ORDER_STEP,
   WIZARD_SUCCESS_STEP,
 } from "@/lib/wizard-config";
+import type { InquirySuccessSummary } from "@/lib/order-inquiry-types";
 import { ArticleOrderStep } from "./ArticleOrderStep";
 import { AppShell } from "./AppShell";
 import {
@@ -39,6 +40,8 @@ import {
   type GeoSelectionTab,
 } from "./GeoHaendlerStep";
 import { HaendlerSelectionStep } from "./HaendlerSelectionStep";
+import { InquiryRequestStep } from "./InquiryRequestStep";
+import { InquirySuccessCard } from "./InquirySuccessCard";
 import { OrderInquiryModal } from "./OrderInquiryModal";
 import { ProductDetailStep } from "./ProductDetailStep";
 import { ProductSideSummary } from "./ProductSideSummary";
@@ -99,7 +102,10 @@ export function RoutingWizard({
   const [plzSearched, setPlzSearched] = useState(false);
   const [showInquiryModal, setShowInquiryModal] = useState(false);
   const [inquirySubmitted, setInquirySubmitted] = useState(false);
+  const [inquirySummary, setInquirySummary] =
+    useState<InquirySuccessSummary | null>(null);
   const shopCheckoutEnabled = isShopCheckoutEnabled();
+  const inquiryCatalogMode = wishlistMode && isInquiryCatalogMode();
   const resolvedCatalogSlug = catalogSlug?.trim() || DEFAULT_CATALOG_SLUG;
 
   const initialVariantArtnum =
@@ -236,9 +242,10 @@ export function RoutingWizard({
     router,
   ]);
 
-  const handleInquirySuccess = useCallback(() => {
+  const handleInquirySuccess = useCallback((summary: InquirySuccessSummary) => {
     setShowInquiryModal(false);
     setInquirySubmitted(true);
+    setInquirySummary(summary);
     setStep(WIZARD_SUCCESS_STEP);
   }, []);
 
@@ -246,7 +253,7 @@ export function RoutingWizard({
     const url = shopCheckoutEnabled ? forwardUrl() : "#";
 
     const successBody =
-      wishlistMode && catalogSlug ? (
+      wishlistMode && catalogSlug && !inquiryCatalogMode ? (
         <div className="stage-card">
           <StepIndicator current={WIZARD_SUCCESS_STEP} total={WIZARD_SUCCESS_STEP} />
           <p className="step-description">{stepDescription(WIZARD_SUCCESS_STEP)}</p>
@@ -276,42 +283,8 @@ export function RoutingWizard({
             </Link>
           </div>
         </div>
-      ) : inquirySubmitted ? (
-        <div className="stage-card">
-          <StepIndicator current={WIZARD_SUCCESS_STEP} total={WIZARD_SUCCESS_STEP} />
-          <p className="step-description">Ihre Anfrage wurde übermittelt.</p>
-          <div className="success-message">
-            <div className="success-icon" aria-hidden>
-              ✓
-            </div>
-            <h2 className="text-xl font-semibold text-accent-success-text">
-              Anfrage gesendet
-            </h2>
-            <p className="mt-2 text-sm text-accent-success-muted">
-              <strong>{displayProduct.name}</strong> · {quantity}×
-            </p>
-            <p className="mt-2 text-sm text-quinary">
-              Der Anbieter wurde per E-Mail informiert und kann sich bei Ihnen
-              melden.
-            </p>
-          </div>
-          <div className="nav-buttons">
-            {catalogSlug ? (
-              <>
-                <Link href={`/c/${catalogSlug}/scan`} className="btn-primary">
-                  Weiteren Artikel scannen
-                </Link>
-                <Link href={`/c/${catalogSlug}`} className="btn-secondary">
-                  Zur Startseite
-                </Link>
-              </>
-            ) : (
-              <Link href="/" className="btn-primary">
-                Zur Startseite
-              </Link>
-            )}
-          </div>
-        </div>
+      ) : inquirySubmitted && inquirySummary ? (
+        <InquirySuccessCard summary={inquirySummary} catalogSlug={catalogSlug} />
       ) : (
         <div className="stage-card">
           <StepIndicator current={WIZARD_SUCCESS_STEP} total={WIZARD_SUCCESS_STEP} />
@@ -493,7 +466,9 @@ export function RoutingWizard({
                     setStep(WIZARD_DEALER_STEP ?? WIZARD_ORDER_STEP)
                   }
                 >
-                  Weiter zur Bestellung →
+                  {inquiryCatalogMode
+                    ? "Weiter zur Anfrage →"
+                    : "Weiter zur Bestellung →"}
                 </button>
               </div>
             </ProductDetailStep>
@@ -541,7 +516,20 @@ export function RoutingWizard({
             />
           ))}
 
-        {step === WIZARD_ORDER_STEP && wishlistMode ? (
+        {step === WIZARD_ORDER_STEP && wishlistMode && inquiryCatalogMode ? (
+          <InquiryRequestStep
+            catalogSlug={resolvedCatalogSlug}
+            parentProduct={product}
+            displayProduct={displayProduct}
+            quantity={quantity}
+            lineTotals={lineTotals}
+            onQuantityChange={setQuantity}
+            onBack={goBackFromOrder}
+            onSuccess={handleInquirySuccess}
+          />
+        ) : null}
+
+        {step === WIZARD_ORDER_STEP && wishlistMode && !inquiryCatalogMode ? (
           <>
             <p className="article-page-label">
               Schritt {WIZARD_ORDER_STEP} von {WIZARD_ACTIVE_STEPS} · Bestellung

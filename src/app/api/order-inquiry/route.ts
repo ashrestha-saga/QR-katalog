@@ -5,6 +5,7 @@ import type { ResolvedInquiryLine } from "@/lib/order-inquiry-types";
 import {
   parseOrderInquiryCustomer,
   parseOrderInquiryLines,
+  parseOrderInquiryMeta,
 } from "@/lib/order-inquiry-validate";
 import { getOrderMode } from "@/lib/order-mode";
 import { calcBasketTotals, calcLineTotals } from "@/lib/pricing";
@@ -17,6 +18,13 @@ import {
 } from "@/lib/smtp";
 
 export const preferredRegion = "fra1";
+
+/** Human-readable ref for the confirmation card + email subject. Not persisted. */
+function generateInquiryNumber(now: Date = new Date()): string {
+  const year = now.getFullYear();
+  const seq = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+  return `ANF-${year}-${seq}`;
+}
 
 /** POST /api/order-inquiry — customer form + cart lines → SMTP email to shop owner */
 export async function POST(request: Request) {
@@ -50,7 +58,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "invalid catalog" }, { status: 400 });
   }
 
-  const parsedCustomer = parseOrderInquiryCustomer(body.customer);
+  const parsedCustomer = parseOrderInquiryCustomer(body.customer, body.formType);
   if ("error" in parsedCustomer) {
     return NextResponse.json({ error: parsedCustomer.error }, { status: 400 });
   }
@@ -59,6 +67,8 @@ export async function POST(request: Request) {
   if ("error" in parsedLines) {
     return NextResponse.json({ error: parsedLines.error }, { status: 400 });
   }
+
+  const meta = parseOrderInquiryMeta(body.meta);
 
   const resolvedLines: ResolvedInquiryLine[] = [];
 
@@ -100,6 +110,8 @@ export async function POST(request: Request) {
     }))
   );
 
+  const inquiryNumber = generateInquiryNumber();
+
   const email = buildOrderInquiryEmail({
     catalog,
     customer: parsedCustomer.customer,
@@ -107,6 +119,8 @@ export async function POST(request: Request) {
     subtotalExclTax: basketTotals.subtotalExclTax,
     taxAmount: basketTotals.taxAmount,
     totalInclTax: basketTotals.totalInclTax,
+    meta,
+    inquiryNumber,
   });
 
   try {
@@ -127,7 +141,7 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, inquiryNumber });
 }
 
 function trimString(value: unknown): string {

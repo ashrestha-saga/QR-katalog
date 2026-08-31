@@ -12,6 +12,7 @@ import {
   upsertCartLine,
   type ConfiguredCartLine,
 } from "@/lib/wishlist-session";
+import { isInquiryCatalogMode } from "@/lib/order-mode";
 import { CatalogAppShell } from "./CatalogAppShell";
 import { RoutingWizard } from "./RoutingWizard";
 
@@ -23,6 +24,7 @@ type Props = {
 };
 
 export function ArticleConfigure({ catalog, product, editCartSku }: Props) {
+  const inquiryMode = isInquiryCatalogMode();
   const [existing, setExisting] = useState<ConfiguredCartLine | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
@@ -51,7 +53,7 @@ export function ArticleConfigure({ catalog, product, editCartSku }: Props) {
         </div>
       ) : (
         <>
-          {existing && showDuplicateWarning ? (
+          {existing && showDuplicateWarning && !inquiryMode ? (
             <div className="article-cart-edit-notice mb-5" role="status">
               <svg
                 width="18"
@@ -91,9 +93,13 @@ export function ArticleConfigure({ catalog, product, editCartSku }: Props) {
             wishlistMode
             catalogSlug={catalog.slug}
             useShell={false}
-            onSaveToCart={(config) => {
-              upsertCartLine(catalog.slug, config);
-            }}
+            onSaveToCart={
+              inquiryMode
+                ? undefined
+                : (config) => {
+                    upsertCartLine(catalog.slug, config);
+                  }
+            }
           />
         </>
       )}

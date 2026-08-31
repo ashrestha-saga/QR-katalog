@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCatalog } from "@/lib/catalog";
+import { isInquiryCatalogMode } from "@/lib/order-mode";
 
 type Props = {
   params: Promise<{ catalogSlug: string }>;
@@ -14,5 +15,5 @@ export default async function CatalogReviewRedirect({ params }: Props) {
     redirect("/");
   }
 
-  redirect(`/c/${catalogSlug}/cart`);
+  redirect(isInquiryCatalogMode() ? `/c/${catalogSlug}` : `/c/${catalogSlug}/cart`);
 }

@@ -5,16 +5,23 @@ import { useEffect } from "react";
 import type { Catalog } from "@/lib/catalog";
 import { setCatalogSession } from "@/lib/catalog-session";
 import { useCartCount } from "@/hooks/useCartCount";
+import { isInquiryCatalogMode } from "@/lib/order-mode";
 import { CatalogAppShell } from "./CatalogAppShell";
 
 type Props = {
   catalog: Catalog;
 };
 
-const STEPS = [
+const SHOP_STEPS = [
   "Artikel-QR im Printkatalog scannen oder die Bestellnummer eingeben",
   "Variante und Menge festlegen",
   "Artikel im Warenkorb speichern und Bestellung vorbereiten",
+] as const;
+
+const INQUIRY_STEPS = [
+  "Artikel-QR im Printkatalog scannen",
+  "Variante und Menge festlegen",
+  "Anfrage absenden und individuelles Angebot erhalten",
 ] as const;
 
 function ArrowRightIcon() {
@@ -78,7 +85,9 @@ function InfoIcon() {
 }
 
 export function CatalogLanding({ catalog }: Props) {
+  const inquiryMode = isInquiryCatalogMode();
   const cartCount = useCartCount(catalog.slug);
+  const steps = inquiryMode ? INQUIRY_STEPS : SHOP_STEPS;
 
   const catalogLabel = catalog.edition
     ? `${catalog.title} · Edition ${catalog.edition}`
@@ -99,8 +108,9 @@ export function CatalogLanding({ catalog }: Props) {
         <p className="scan-catalog-label">{catalogLabel}</p>
         <h1 className="scan-page-title">Katalog geöffnet</h1>
         <p className="scan-page-description">
-          Du hast den Cover-QR gescannt. Scanne jetzt einen Artikel-QR im
-          Katalog oder gib die Bestellnummer ein, um Produktdetails zu laden.
+          {inquiryMode
+            ? "Du hast den Cover-QR gescannt. Scanne jetzt einen Artikel-QR im Katalog, um Produktdetails zu laden und eine Anfrage zu stellen."
+            : "Du hast den Cover-QR gescannt. Scanne jetzt einen Artikel-QR im Katalog oder gib die Bestellnummer ein, um Produktdetails zu laden."}
         </p>
 
         <section className="landing-hero-card" aria-label="Nächster Schritt">
@@ -116,7 +126,7 @@ export function CatalogLanding({ catalog }: Props) {
               Artikel-QR scannen
               <ArrowRightIcon />
             </Link>
-            {cartCount > 0 ? (
+            {cartCount > 0 && !inquiryMode ? (
               <Link
                 href={`/c/${catalog.slug}/cart`}
                 className="cart-btn-outline landing-cta"
@@ -132,7 +142,7 @@ export function CatalogLanding({ catalog }: Props) {
             So funktioniert&apos;s
           </h2>
           <ol className="landing-steps-list">
-            {STEPS.map((step, index) => (
+            {steps.map((step, index) => (
               <li key={step} className="landing-step">
                 <span className="landing-step-number" aria-hidden>
                   {index + 1}
@@ -146,8 +156,9 @@ export function CatalogLanding({ catalog }: Props) {
         <div className="scan-info-bar">
           <InfoIcon />
           <p>
-            Artikeldetails werden erst nach dem Scan eines Artikel-QR oder der
-            Eingabe einer Bestellnummer geladen — nicht über den Cover-QR.
+            {inquiryMode
+              ? "Artikeldetails werden erst nach dem Scan eines Artikel-QR geladen — nicht über den Cover-QR."
+              : "Artikeldetails werden erst nach dem Scan eines Artikel-QR oder der Eingabe einer Bestellnummer geladen — nicht über den Cover-QR."}
           </p>
         </div>
       </div>

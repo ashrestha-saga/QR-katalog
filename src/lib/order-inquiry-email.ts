@@ -3,7 +3,12 @@ import {
   formatInquirySalutation,
   getInquiryCountryLabel,
 } from "@/lib/inquiry-form-constants";
-import type { OrderInquiryCustomer, ResolvedInquiryLine } from "@/lib/order-inquiry-types";
+import type {
+  InquiryCustomer,
+  LegacyInquiryCustomer,
+  OrderInquiryMeta,
+  ResolvedInquiryLine,
+} from "@/lib/order-inquiry-types";
 import { formatVariantWithUnit } from "@/lib/product-format";
 import { formatEur } from "@/lib/pricing";
 
@@ -37,12 +42,12 @@ function formatTimestamp(date: Date): string {
   }).format(date);
 }
 
-function formatCustomerName(customer: OrderInquiryCustomer): string {
+function formatCustomerName(customer: InquiryCustomer): string {
   return `${customer.firstName} ${customer.lastName}`.trim();
 }
 
-function buildCustomerRows(
-  customer: OrderInquiryCustomer
+function buildLegacyCustomerRows(
+  customer: LegacyInquiryCustomer
 ): Array<[string, string]> {
   const countryLabel = getInquiryCountryLabel(customer.country);
   const address = `${customer.street} ${customer.houseNumber}, ${customer.postalCode} ${customer.city}, ${countryLabel}`;
@@ -59,23 +64,41 @@ function buildCustomerRows(
   ].filter((row): row is [string, string] => row !== null);
 }
 
+function buildCustomerRows(
+  customer: InquiryCustomer
+): Array<[string, string]> {
+  if (customer.formType === "legacy") return buildLegacyCustomerRows(customer);
+
+  return [
+    ["Name", formatCustomerName(customer)],
+    ["Praxis / Klinik", customer.facility],
+    ["PLZ", customer.postalCode],
+    ["E-Mail", customer.email],
+    customer.message ? ["Notiz zur Anfrage", customer.message] : null,
+  ].filter((row): row is [string, string] => row !== null);
+}
+
 export function buildOrderInquiryEmail(params: {
   catalog: Catalog;
-  customer: OrderInquiryCustomer;
+  customer: InquiryCustomer;
   lines: ResolvedInquiryLine[];
   subtotalExclTax: number;
   taxAmount: number;
   totalInclTax: number;
   sentAt?: Date;
+  meta?: OrderInquiryMeta | null;
+  inquiryNumber?: string;
 }): OrderInquiryEmailContent {
-  const { catalog, customer, lines } = params;
+  const { catalog, customer, lines, inquiryNumber } = params;
   const sentAt = params.sentAt ?? new Date();
   const catalogLabel = catalog.edition
     ? `${catalog.title} (${catalog.edition})`
     : catalog.title;
   const customerName = formatCustomerName(customer);
 
-  const subject = `Katalog-Anfrage: ${customerName} — ${catalog.title}`;
+  const subject = inquiryNumber
+    ? `Katalog-Anfrage ${inquiryNumber}: ${customerName} — ${catalog.title}`
+    : `Katalog-Anfrage: ${customerName} — ${catalog.title}`;
 
   const customerRows = buildCustomerRows(customer);
   const customerBlock = customerRows
@@ -106,10 +129,23 @@ export function buildOrderInquiryEmail(params: {
     `Gesamt brutto: ${formatEur(params.totalInclTax)}`,
   ].join("\n");
 
-  const text = [
+  const metaRows: Array<[string, string]> = [];
+  if (params.meta?.source) metaRows.push(["Quelle", params.meta.source]);
+  if (params.meta?.capturedAt) metaRows.push(["Erfasst am", params.meta.capturedAt]);
+  if (params.meta?.variantDimensions) {
+    for (const dim of params.meta.variantDimensions) {
+      metaRows.push([dim.label, dim.value]);
+    }
+  }
+  const metaBlock = metaRows
+    .map(([label, value]) => `${label}: ${value}`)
+    .join("\n");
+
+  const textSections: string[] = [
     "Neue Katalog-Anfrage",
     "====================",
     "",
+    ...(inquiryNumber ? [`Anfrage: ${inquiryNumber}`] : []),
     `Katalog: ${catalogLabel}`,
     `Slug:    ${catalog.slug}`,
     `Datum:   ${formatTimestamp(sentAt)}`,
@@ -125,7 +161,11 @@ export function buildOrderInquiryEmail(params: {
     "ZUSAMMENFASSUNG",
     "---------------",
     summaryBlock,
-  ].join("\n");
+  ];
+  if (metaRows.length > 0) {
+    textSections.push("", "ANFRAGE-KONTEXT", "---------------", metaBlock);
+  }
+  const text = textSections.join("\n");
 
   const customerTable = customerRows
     .map(
@@ -133,6 +173,18 @@ export function buildOrderInquiryEmail(params: {
         `<tr><th align="left" style="padding:4px 12px 4px 0;vertical-align:top;color:#666;white-space:nowrap;">${escapeHtml(label)}</th><td style="padding:4px 0;">${escapeHtml(value)}</td></tr>`
     )
     .join("");
+
+  const metaTable = metaRows
+    .map(
+      ([label, value]) =>
+        `<tr><th align="left" style="padding:4px 12px 4px 0;vertical-align:top;color:#666;white-space:nowrap;">${escapeHtml(label)}</th><td style="padding:4px 0;">${escapeHtml(value)}</td></tr>`
+    )
+    .join("");
+  const metaHtmlSection = metaRows.length
+    ? `
+  <h3 style="margin:24px 0 8px;">Anfrage-Kontext</h3>
+  <table style="border-collapse:collapse;">${metaTable}</table>`
+    : "";
 
   const articleRows = lines
     .map(
@@ -152,7 +204,7 @@ export function buildOrderInquiryEmail(params: {
 <body style="font-family:Arial,sans-serif;color:#1a1a1a;line-height:1.5;">
   <h2 style="margin:0 0 8px;">Neue Katalog-Anfrage</h2>
   <p style="margin:0 0 16px;color:#555;">
-    <strong>Katalog:</strong> ${escapeHtml(catalogLabel)}<br>
+    ${inquiryNumber ? `<strong>Anfrage:</strong> ${escapeHtml(inquiryNumber)}<br>` : ""}<strong>Katalog:</strong> ${escapeHtml(catalogLabel)}<br>
     <strong>Datum:</strong> ${escapeHtml(formatTimestamp(sentAt))}
   </p>
 
@@ -179,7 +231,7 @@ export function buildOrderInquiryEmail(params: {
     <tr><td style="padding:4px 16px 4px 0;">Summe netto</td><td align="right">${escapeHtml(formatEur(params.subtotalExclTax))}</td></tr>
     <tr><td style="padding:4px 16px 4px 0;">MwSt.</td><td align="right">${escapeHtml(formatEur(params.taxAmount))}</td></tr>
     <tr><td style="padding:4px 16px 4px 0;font-weight:bold;">Gesamt brutto</td><td align="right" style="font-weight:bold;">${escapeHtml(formatEur(params.totalInclTax))}</td></tr>
-  </table>
+  </table>${metaHtmlSection}
 </body>
 </html>`;
 

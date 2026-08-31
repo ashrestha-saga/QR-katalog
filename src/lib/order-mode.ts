@@ -18,3 +18,8 @@ export function getOrderMode(): OrderMode {
 export function isShopCheckoutEnabled(): boolean {
   return getOrderMode() === "shop";
 }
+
+/** Catalog page mode: single-article scan flow ends with a full-page inquiry form instead of cart. */
+export function isInquiryCatalogMode(): boolean {
+  return getOrderMode() === "inquiry";
+}
