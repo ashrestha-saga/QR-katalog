@@ -180,7 +180,7 @@ export async function fetchArticlesFromMerzljak(
 
   const data = await merzljakPost<unknown>(
     "/index.php?cl=articleapi&fnc=getArticles",
-    { articles: numbers },
+    { oxartnum: numbers },
     true
   );
 
