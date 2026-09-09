@@ -12,6 +12,8 @@ export type OxidVariantRecord = {
   oxtitle: string;
   oxshortdesc: string;
   oxprice: string;
+  /** UVP / list price (OXID oxtprice), when set and above oxprice */
+  oxtprice?: string;
   oxpic1: string;
   oxstock: number;
   oxvarselect: string;
@@ -56,6 +58,8 @@ export type Product = {
   imageUrls?: string[];
   /** Unit price excluding tax (EUR) */
   unitPriceExclTax: number;
+  /** UVP / list price excl. tax (EUR) from OXID oxtprice — shown struck when higher than unit price */
+  listPriceExclTax?: number;
   /** OXID stock flag; -1 = unknown */
   stock?: number;
   /** Pharmazentralnummer (PZN), from OXID mpzn */

@@ -15,6 +15,7 @@ import {
   formatEur,
   formatTaxRate,
 } from "@/lib/pricing";
+import { formatVeLabel } from "@/lib/product-format";
 import { setHaendlerCookie } from "@/lib/cookies";
 import { DEFAULT_CATALOG_SLUG } from "@/lib/catalog-constants";
 import { isInquiryCatalogMode, isShopCheckoutEnabled } from "@/lib/order-mode";
@@ -118,6 +119,7 @@ export function RoutingWizard({
   const displayProduct = variantSelection.displayProduct;
   /** Variant oxartnum when configured, otherwise parent article SKU */
   const cartSku = displayProduct.sku;
+  const veLabel = formatVeLabel(displayProduct.unitName);
 
   const { geo, loading: geoLoading, error: geoError, fetchGeo } = useGeo(false);
 
@@ -420,7 +422,12 @@ export function RoutingWizard({
             >
               {wishlistMode ? (
                 <div className="article-quantity-row">
-                  <span className="article-variant-label">Menge</span>
+                  <div className="article-quantity-heading">
+                    <span className="article-variant-label">Menge</span>
+                    {veLabel ? (
+                      <span className="article-quantity-ve">{veLabel}</span>
+                    ) : null}
+                  </div>
                   <div className="cart-qty-control">
                     <button
                       type="button"

@@ -145,6 +145,7 @@ function mapVariantRecord(record: OxidArticleRecord): OxidVariantRecord | null {
   const oxtitle = pickString(record, ["oxtitle", "OXTITLE"]);
   const oxshortdesc = pickString(record, ["oxshortdesc", "OXSHORTDESC"]) ?? "";
   const oxprice = pickString(record, ["oxprice", "OXPRICE"]) ?? "0";
+  const oxtprice = pickString(record, ["oxtprice", "OXTPRICE"]);
   const oxpic1 = pickString(record, ["oxpic1", "OXPIC1"]) ?? "";
   const oxstock = pickNumber(record, ["oxstock", "OXSTOCK"]) ?? -1;
   const mpzn = pickString(record, ["mpzn", "MPZN"]);
@@ -163,6 +164,7 @@ function mapVariantRecord(record: OxidArticleRecord): OxidVariantRecord | null {
     oxtitle,
     oxshortdesc,
     oxprice,
+    ...(oxtprice ? { oxtprice } : {}),
     oxpic1,
     oxstock,
     oxvarselect,
@@ -215,8 +217,12 @@ export function mapOxidArticleToProduct(
       "OXPRICE",
       "oxbprice",
       "price",
-      "oxtprice",
     ]) ?? 0;
+  const listPrice = pickNumber(record, ["oxtprice", "OXTPRICE"]);
+  const listPriceExclTax =
+    listPrice !== undefined && listPrice !== null && listPrice > 0
+      ? Math.round(listPrice * 100) / 100
+      : undefined;
 
   const vatPercent = pickNumber(record, ["oxvat", "OXVAT", "vat"]) ?? 19;
   const taxRate = vatPercent > 1 ? vatPercent / 100 : vatPercent;
@@ -273,6 +279,7 @@ export function mapOxidArticleToProduct(
     ...(stock !== undefined ? { stock } : {}),
     ...(mpzn ? { mpzn } : {}),
     unitPriceExclTax: Math.round(price * 100) / 100,
+    ...(listPriceExclTax !== undefined ? { listPriceExclTax } : {}),
     taxRate: Math.round(taxRate * 10000) / 10000,
     currency: "EUR",
   };

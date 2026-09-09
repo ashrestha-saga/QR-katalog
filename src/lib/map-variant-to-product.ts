@@ -13,6 +13,7 @@ export function mapVariantToDisplayProduct(
 ): Product {
   const imageUrls = variant.imageUrls ?? [];
   const thumbnailUrl = variant.thumbnailUrl ?? imageUrls[0];
+  const listPrice = parsePrice(variant.oxtprice ?? "0");
 
   return {
     ...parent,
@@ -23,6 +24,7 @@ export function mapVariantToDisplayProduct(
     shortDescription: variant.oxshortdesc || parent.shortDescription,
     variant: variant.oxvarselect,
     unitPriceExclTax: parsePrice(variant.oxprice),
+    listPriceExclTax: listPrice > 0 ? listPrice : undefined,
     stock: variant.oxstock,
     mpzn: variant.mpzn,
     thumbnailUrl: thumbnailUrl ?? parent.thumbnailUrl,

@@ -23,10 +23,17 @@ import {
   type ConfiguredCartLine,
 } from "@/lib/wishlist-session";
 import { isShopCheckoutEnabled } from "@/lib/order-mode";
-import { shouldShowShortDescription } from "@/lib/product-format";
+import { formatVeLabel, shouldShowShortDescription } from "@/lib/product-format";
 import { CatalogAppShell } from "./CatalogAppShell";
 import { OrderInquiryModal, type InquiryLine } from "./OrderInquiryModal";
 import { ProductThumb } from "./ProductThumb";
+
+function formatArticleMeta(product: Product): string {
+  const ve = formatVeLabel(product.unitName);
+  return ve
+    ? `Art. Nr. ${product.sku} · ${ve}`
+    : `Art. Nr. ${product.sku}`;
+}
 
 type Props = {
   catalog: Catalog;
@@ -79,13 +86,6 @@ function ArrowRightIcon() {
       <path d="m13 6 6 6-6 6" />
     </svg>
   );
-}
-
-function formatArticleMeta(product: Product): string {
-  const unit = product.unitName?.trim();
-  return unit
-    ? `Art. Nr. ${product.sku} · VE: ${unit}`
-    : `Art. Nr. ${product.sku}`;
 }
 
 type CartLineRowProps = {

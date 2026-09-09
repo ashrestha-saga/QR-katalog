@@ -6,7 +6,7 @@ import type {
   InquirySuccessSummary,
   OrderInquiryMeta,
 } from "@/lib/order-inquiry-types";
-import { formatVariantWithUnit } from "@/lib/product-format";
+import { formatVariantWithUnit, formatVeLabel } from "@/lib/product-format";
 import { type LineTotals, formatEur } from "@/lib/pricing";
 import { ProductThumb } from "./ProductThumb";
 
@@ -93,7 +93,7 @@ function formatConfiguration(
 ): string {
   const dims = buildVariantDimensions(parentProduct, displayProduct);
   if (dims.length > 0) return dims.map((d) => d.value).join(", ");
-  return displayProduct.variant || displayProduct.unitName || "Standardausführung";
+  return displayProduct.shortDescription?.trim() || "—";
 }
 
 function formatCapturedAt(date: Date): string {
@@ -156,6 +156,7 @@ export function InquiryRequestStep({
 
   const variantLine = formatVariantWithUnit(displayProduct);
   const configuration = formatConfiguration(parentProduct, displayProduct);
+  const veLabel = formatVeLabel(displayProduct.unitName);
   const taxRateLabel = Math.round(lineTotals.taxRate * 100);
 
   const updateField = useCallback(
@@ -306,8 +307,8 @@ export function InquiryRequestStep({
                   <p className="inquiry-request-variantline">{variantLine}</p>
                 ) : null}
                 <p className="inquiry-request-thumb-hint">
-                  VE: {displayProduct.unitName || "Stück"} · Lieferzeit auf
-                  Anfrage
+                  {veLabel ? `${veLabel} · ` : null}
+                  Lieferzeit auf Anfrage
                 </p>
                 <button
                   type="button"
@@ -359,12 +360,17 @@ export function InquiryRequestStep({
                 role="group"
                 aria-labelledby="inquiry-qty-label"
               >
-                <span
-                  id="inquiry-qty-label"
-                  className="inquiry-request-qty-label"
-                >
-                  Menge
-                </span>
+                <div className="article-quantity-heading">
+                  <span
+                    id="inquiry-qty-label"
+                    className="inquiry-request-qty-label"
+                  >
+                    Menge
+                  </span>
+                  {veLabel ? (
+                    <span className="article-quantity-ve">{veLabel}</span>
+                  ) : null}
+                </div>
                 <div className="inquiry-request-stepper">
                   <button
                     type="button"

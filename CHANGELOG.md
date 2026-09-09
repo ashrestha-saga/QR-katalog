@@ -12,9 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Inquiry catalog mode (`NEXT_PUBLIC_CATALOG_ORDER_MODE=inquiry`): scan-only article entry (no manual Bestellnummer), no Warenkorb route or cart icon, and inquiry-specific landing copy and steps.
 - Toast on the cart after adding an item (“Artikel hinzugefügt”), shown at the top of the page.
 - `.DS_Store` entries to `.gitignore`.
+- Step-1 Stückpreis UVP from OXID `oxtprice`: struck-through list price when higher than the sale price.
+- Faint `VE:` packaging hint beside Menge when `oxunitname` includes a quantity (e.g. `100 Stück`).
 
 ### Changed
 
+- Merzljak `getArticles` request body key: `articles` → `oxartnum`.
+- Non-variant Konfiguration on step 1 uses `oxshortdesc` (`shortDescription`) instead of `variant` / `unitName` / “Standardausführung”.
 - Skip the post-save “Weiterleitung” step: saving from the order step goes straight to the Warenkorb.
 - Move Germany shipping (Versand) from the article order step into the cart summary, with net tiers (≤€30 → €12.90, ≤€100 → €7.90, >€100 → free).
 - `/c/{slug}/cart` and legacy `/c/{slug}/review` redirect to catalog landing when inquiry mode is active.

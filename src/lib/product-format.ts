@@ -1,15 +1,23 @@
 import type { Product } from "@/lib/mock-data";
 
+/** Packaging unit hint, e.g. "VE: 100 Stück" — omit plain "Stück" without a quantity. */
+export function formatVeLabel(unitName?: string): string | null {
+  const unit = unitName?.trim();
+  if (!unit) return null;
+  if (!/\d/.test(unit)) return null;
+  return /^ve\s*:/i.test(unit) ? unit : `VE: ${unit}`;
+}
+
 export function formatVariantWithUnit(
   product: Pick<Product, "variant" | "unitName">
 ): string | null {
   const variant = product.variant?.trim();
   const unit = product.unitName?.trim();
+  const ve = formatVeLabel(unit);
 
-  if (variant && unit) return `${variant} · VE: ${unit}`;
+  if (variant && ve) return `${variant} · ${ve}`;
   if (variant) return variant;
-  if (unit) return `VE: ${unit}`;
-  return null;
+  return ve;
 }
 
 export function shouldShowShortDescription(
