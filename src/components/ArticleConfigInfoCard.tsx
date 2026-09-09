@@ -29,7 +29,7 @@ function formatConfiguration(
     return "—";
   }
 
-  return product.variant || product.unitName || "Standardausführung";
+  return product.shortDescription?.trim() || "—";
 }
 
 function formatArticleNumber(
@@ -50,6 +50,11 @@ export function ArticleConfigInfoCard({
   const taxRateLabel = Math.round(product.taxRate * 100);
   const showPrice = (!hasVariants || isComplete) && product.unitPriceExclTax > 0;
   const pzn = product.mpzn?.trim();
+  const listPrice = product.listPriceExclTax;
+  const showUvp =
+    showPrice &&
+    listPrice !== undefined &&
+    listPrice > product.unitPriceExclTax;
 
   return (
     <div className="article-config-info-card" aria-live="polite">
@@ -77,9 +82,20 @@ export function ArticleConfigInfoCard({
       <div className="article-config-info-row article-config-info-row-price">
         <span className="article-config-info-label">Stückpreis</span>
         <div className="article-config-info-value-stack">
-          <span className="article-config-info-value">
-            {showPrice ? formatEur(product.unitPriceExclTax) : "—"}
-          </span>
+          {showPrice ? (
+            <span className="article-config-info-price-pair">
+              {showUvp ? (
+                <span className="article-config-info-price-uvp">
+                  {formatEur(listPrice)}
+                </span>
+              ) : null}
+              <span className="article-config-info-price-current">
+                {formatEur(product.unitPriceExclTax)}
+              </span>
+            </span>
+          ) : (
+            <span className="article-config-info-value">—</span>
+          )}
           <span className="article-config-info-tax">
             zzgl. {taxRateLabel} % MwSt.
           </span>

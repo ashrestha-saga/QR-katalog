@@ -878,6 +878,14 @@ body {
     @apply flex items-center justify-between gap-4 rounded-xl border border-mercury bg-white px-4 py-3;
   }
 
+  .article-quantity-heading {
+    @apply flex min-w-0 flex-col gap-0.5;
+  }
+
+  .article-quantity-ve {
+    @apply text-xs font-normal text-quinary/70;
+  }
+
   .article-variant-fields {
     @apply space-y-4;
   }
@@ -914,7 +922,15 @@ body {
     @apply items-start bg-porcelain/60 py-3.5;
   }
 
-  .article-config-info-value-stack span:first-child {
+  .article-config-info-price-pair {
+    @apply flex items-baseline justify-end gap-2;
+  }
+
+  .article-config-info-price-uvp {
+    @apply text-sm font-medium text-quinary/70 line-through;
+  }
+
+  .article-config-info-price-current {
     @apply text-base font-bold text-primary;
   }
 

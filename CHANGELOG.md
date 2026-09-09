@@ -11,10 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Catalog article flow is a single configure page: variant + quantity, then “In Warenkorb speichern” goes straight to the cart (Bestellung and Weiterleitung steps removed).
 - Move Germany shipping (Versand) into the cart summary, with net tiers (≤€30 → €12.90, ≤€100 → €7.90, >€100 → free).
+- Merzljak `getArticles` request body key: `articles` → `oxartnum`.
+- Non-variant Konfiguration on step 1 uses `oxshortdesc` (`shortDescription`) instead of `variant` / `unitName` / “Standardausführung”.
 
 ### Added
 
 - Toast on the cart after adding an item (“Artikel hinzugefügt”), shown at the top of the page.
+- Step-1 Stückpreis UVP from OXID `oxtprice`: struck-through list price when higher than the sale price.
+- Faint `VE:` packaging hint beside Menge when `oxunitname` includes a quantity (e.g. `100 Stück`).
 
 ## [1.0.0] - 2026-06-23
 
