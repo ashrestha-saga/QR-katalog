@@ -158,10 +158,11 @@ function CartLineRow({
           </button>
         </div>
 
+        <span className="cart-line-unit-price">
+          (à {formatEur(lineTotals.unitPriceExclTax)})
+        </span>
+
         <div className="cart-line-pricing">
-          <span className="cart-line-unit-price">
-            à {formatEur(lineTotals.unitPriceExclTax)}
-          </span>
           <span className="cart-line-total-price">
             {formatEur(lineTotals.subtotalExclTax)}
           </span>

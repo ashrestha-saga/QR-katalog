@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import type { Product } from "@/lib/mock-data";
 import {
   formatVariantWithUnit,
@@ -17,6 +17,8 @@ type Props = {
   children?: React.ReactNode;
   /** Equal 50/50 columns with a larger preview — article configure step 1 */
   balancedLayout?: boolean;
+  /** Menge for Gesamtpreis on the config card */
+  quantity?: number;
 };
 
 type VariantSelectorProps = Pick<
@@ -391,6 +393,7 @@ export function ProductDetailStep({
   variantSelection,
   children,
   balancedLayout = false,
+  quantity = 1,
 }: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -443,6 +446,7 @@ export function ProductDetailStep({
               hasVariants={hasVariants}
               isComplete={variantSelection?.isVariantSelectionComplete ?? true}
               selectedVariant={variantSelection?.selectedVariant}
+              quantity={quantity}
             />
             {children}
           </div>

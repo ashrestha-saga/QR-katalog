@@ -325,7 +325,7 @@ body {
   }
 
   .cart-line-bottom {
-    @apply mt-4 flex items-center justify-between gap-3;
+    @apply mt-4 flex items-center gap-3;
   }
 
   .cart-line-pricing {
@@ -333,7 +333,7 @@ body {
   }
 
   .cart-line-unit-price {
-    @apply block text-xs text-quinary;
+    @apply flex-1 text-center text-sm text-black;
   }
 
   .cart-line-total-price {
@@ -919,7 +919,11 @@ body {
   }
 
   .article-config-info-row-price {
-    @apply items-start bg-porcelain/60 py-3.5;
+    @apply items-center bg-porcelain/60 py-3.5;
+  }
+
+  .article-config-info-unit-price {
+    @apply flex-1 text-center text-sm font-normal text-black;
   }
 
   .article-config-info-price-pair {
@@ -943,7 +947,7 @@ body {
   }
 
   .article-config-info-value-stack {
-    @apply flex flex-col items-end gap-0.5;
+    @apply flex shrink-0 flex-col items-end gap-0.5;
   }
 
   .article-config-info-muted {

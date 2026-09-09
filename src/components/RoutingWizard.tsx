@@ -457,6 +457,7 @@ export function RoutingWizard({
               product={displayProduct}
               variantSelection={variantSelection}
               balancedLayout={wishlistMode}
+              quantity={quantity}
             >
               {wishlistMode ? (
                 <div className="article-quantity-row">
