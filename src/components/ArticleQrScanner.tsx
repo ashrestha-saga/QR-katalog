@@ -4,10 +4,12 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Catalog } from "@/lib/catalog";
 import {
+  markArticleScanned,
   parseArticleSkuFromQr,
   setCatalogSession,
 } from "@/lib/catalog-session";
 import { isInquiryCatalogMode } from "@/lib/order-mode";
+import { requestScanGrant } from "@/lib/request-scan-grant";
 import { CatalogAppShell } from "./CatalogAppShell";
 
 const READER_ID = "article-qr-reader";
@@ -73,8 +75,6 @@ export function ArticleQrScanner({ catalog }: Props) {
 
   const goToConfigure = useCallback(
     (sku: string) => {
-      if (processingRef.current) return;
-
       const now = Date.now();
       if (
         lastScanRef.current?.sku === sku &&
@@ -82,14 +82,12 @@ export function ArticleQrScanner({ catalog }: Props) {
       ) {
         return;
       }
-      processingRef.current = true;
       lastScanRef.current = { sku, at: now };
 
       setCatalogSession(catalog.slug);
-      void cleanupScanner().finally(() => {
-        processingRef.current = false;
-      });
-      router.push(`/c/${catalog.slug}/article/${sku}`);
+      markArticleScanned(sku);
+      void cleanupScanner();
+      router.push(`/c/${catalog.slug}/article/${encodeURIComponent(sku)}`);
     },
     [catalog.slug, cleanupScanner, router]
   );
@@ -100,14 +98,12 @@ export function ArticleQrScanner({ catalog }: Props) {
 
       setManualError(null);
       setLookupLoading(true);
+      processingRef.current = true;
       try {
-        const res = await fetch(
-          `/api/articles/${encodeURIComponent(sku)}`,
-          { cache: "no-store" }
-        );
-        if (!res.ok) {
+        const result = await requestScanGrant(catalog.slug, sku);
+        if (!result.ok) {
           setManualError(
-            res.status === 404
+            result.status === 404
               ? `Artikel ${sku} wurde im Shop nicht gefunden.`
               : "Artikel konnte nicht geladen werden. Bitte erneut versuchen."
           );
@@ -119,10 +115,11 @@ export function ArticleQrScanner({ catalog }: Props) {
           "Verbindung zum Shop fehlgeschlagen. Bitte erneut versuchen."
         );
       } finally {
+        processingRef.current = false;
         setLookupLoading(false);
       }
     },
-    [goToConfigure]
+    [catalog.slug, goToConfigure]
   );
 
   const handleScanSuccess = useCallback(

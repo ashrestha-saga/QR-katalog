@@ -2,10 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Catalog } from "@/lib/catalog";
-import {
-  markArticleScanned,
-  setCatalogSession,
-} from "@/lib/catalog-session";
+import { setCatalogSession } from "@/lib/catalog-session";
 import type { Product } from "@/lib/mock-data";
 import {
   getCartLine,
@@ -31,7 +28,6 @@ export function ArticleConfigure({ catalog, product, editCartSku }: Props) {
 
   useEffect(() => {
     setCatalogSession(catalog.slug);
-    markArticleScanned(product.sku);
 
     const lineSku = editCartSku ?? product.sku;
     const existingLine = getCartLine(catalog.slug, lineSku) ?? null;
