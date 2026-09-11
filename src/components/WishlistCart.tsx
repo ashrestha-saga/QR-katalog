@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Catalog } from "@/lib/catalog";
 import { setCatalogSession } from "@/lib/catalog-session";
 import { type Product } from "@/lib/mock-data";
+import { requestScanGrant } from "@/lib/request-scan-grant";
 import { WIZARD_HAENDLER_STEP_ENABLED } from "@/lib/wizard-config";
 import {
   calcBasketTotalsWithShipping,
@@ -89,19 +91,21 @@ function ArrowRightIcon() {
 }
 
 type CartLineRowProps = {
-  catalog: Catalog;
   line: ConfiguredCartLine;
   product: Product;
   onQuantityChange: (sku: string, quantity: number) => void;
   onRemove: (sku: string) => void;
+  onEdit: (line: ConfiguredCartLine) => void;
+  editBusySku: string | null;
 };
 
 function CartLineRow({
-  catalog,
   line,
   product,
   onQuantityChange,
   onRemove,
+  onEdit,
+  editBusySku,
 }: CartLineRowProps) {
   const lineTotals = calcLineTotals(
     line.quantity,
@@ -111,6 +115,7 @@ function CartLineRow({
   const variantLine =
     product.variant?.trim() ||
     (shouldShowShortDescription(product) ? product.shortDescription?.trim() : null);
+  const editing = editBusySku === line.sku;
 
   return (
     <li className="cart-line-card">
@@ -122,12 +127,14 @@ function CartLineRow({
           />
         </div>
         <div className="min-w-0 flex-1">
-          <Link
-            href={buildCartLineEditHref(catalog.slug, line)}
-            className="cart-line-title"
+          <button
+            type="button"
+            className="cart-line-title text-left"
+            disabled={editing}
+            onClick={() => onEdit(line)}
           >
-            {product.name}
-          </Link>
+            {editing ? "Wird geladen…" : product.name}
+          </button>
           {variantLine ? (
             <p className="cart-line-variant">{variantLine}</p>
           ) : null}
@@ -262,6 +269,7 @@ function CartSummary({
 }
 
 export function WishlistCart({ catalog }: Props) {
+  const router = useRouter();
   const [lines, setLines] = useState<ConfiguredCartLine[]>([]);
   const [products, setProducts] = useState<Record<string, Product>>({});
   const [hydrated, setHydrated] = useState(false);
@@ -274,6 +282,7 @@ export function WishlistCart({ catalog }: Props) {
   const [showInquiryModal, setShowInquiryModal] = useState(false);
   const [inquirySubmitted, setInquirySubmitted] = useState(false);
   const [addedToast, setAddedToast] = useState<CartAddedToast | null>(null);
+  const [editBusySku, setEditBusySku] = useState<string | null>(null);
   const shopCheckoutEnabled = isShopCheckoutEnabled();
 
   const refreshLines = useCallback(() => {
@@ -287,6 +296,31 @@ export function WishlistCart({ catalog }: Props) {
       return next;
     });
   }, [catalog.slug]);
+
+  const editCartLine = useCallback(
+    async (line: ConfiguredCartLine) => {
+      const parentSku = line.product?.parentSku ?? line.sku;
+      setEditBusySku(line.sku);
+      try {
+        const result = await requestScanGrant(catalog.slug, parentSku);
+        if (!result.ok) {
+          setSubmitError(
+            "Artikel konnte nicht zum Bearbeiten geladen werden. Bitte erneut scannen."
+          );
+          return;
+        }
+        if (line.sku !== parentSku) {
+          await requestScanGrant(catalog.slug, line.sku);
+        }
+        router.push(buildCartLineEditHref(catalog.slug, line));
+      } catch {
+        setSubmitError("Netzwerkfehler beim Öffnen des Artikels.");
+      } finally {
+        setEditBusySku(null);
+      }
+    },
+    [catalog.slug, router]
+  );
 
   useEffect(() => {
     setCatalogSession(catalog.slug);
@@ -315,12 +349,9 @@ export function WishlistCart({ catalog }: Props) {
       const entries = await Promise.all(
         missingSkus.map(async (sku) => {
           try {
-            const res = await fetch(`/api/articles/${encodeURIComponent(sku)}`, {
-              cache: "no-store",
-            });
-            if (!res.ok) return null;
-            const data = (await res.json()) as { product?: Product };
-            return data.product ? ([sku, data.product] as const) : null;
+            const grant = await requestScanGrant(catalog.slug, sku);
+            if (!grant.ok || !grant.product) return null;
+            return [sku, grant.product as Product] as const;
           } catch {
             return null;
           }
@@ -343,7 +374,7 @@ export function WishlistCart({ catalog }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [lines, products]);
+  }, [lines, products, catalog.slug]);
 
   useEffect(() => {
     if (!redirects || redirects.length === 0) return;
@@ -673,11 +704,12 @@ export function WishlistCart({ catalog }: Props) {
                   return (
                     <CartLineRow
                       key={line.sku}
-                      catalog={catalog}
                       line={line}
                       product={product}
                       onQuantityChange={updateQuantity}
                       onRemove={removeLine}
+                      onEdit={editCartLine}
+                      editBusySku={editBusySku}
                     />
                   );
                 })}

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { fetchArticleBySku, getProductSourceLabel } from "@/lib/product-source";
 import { isMerzljakApiConfigured } from "@/lib/merzljak-api/config";
+import { grantAllowsSku, readScanGrant } from "@/lib/scan-grant";
 
 export const preferredRegion = "fra1";
 
@@ -8,13 +9,33 @@ type Props = {
   params: Promise<{ sku: string }>;
 };
 
-/** GET /api/articles/{sku} — article details from Merzljak shop API (or mock fallback) */
-export async function GET(_request: Request, { params }: Props) {
+/**
+ * GET /api/articles/{sku}?catalog={slug}
+ * Requires a valid scan-grant cookie for this catalog + SKU.
+ */
+export async function GET(request: Request, { params }: Props) {
   const { sku } = await params;
   const decoded = decodeURIComponent(sku).trim();
 
   if (!decoded) {
     return NextResponse.json({ error: "sku required" }, { status: 400 });
+  }
+
+  const catalogSlug =
+    new URL(request.url).searchParams.get("catalog")?.trim() ?? "";
+  if (!catalogSlug) {
+    return NextResponse.json(
+      { error: "catalog_required" },
+      { status: 400 }
+    );
+  }
+
+  const grant = await readScanGrant();
+  if (!grantAllowsSku(grant, catalogSlug, decoded)) {
+    return NextResponse.json(
+      { error: "scan_required", sku: decoded },
+      { status: 403 }
+    );
   }
 
   const product = await fetchArticleBySku(decoded);

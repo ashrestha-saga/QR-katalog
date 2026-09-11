@@ -39,21 +39,13 @@ export function CatalogGate({ productSku, reason, catalogSlug }: Props) {
             )}
           </p>
           <div className="nav-buttons mt-6">
-            <Link href={`/c/${slug}`} className="btn-primary">
-              Zum Katalog
-            </Link>
-            <Link href={`/c/${slug}/scan`} className="btn-secondary">
+            <Link href={`/c/${slug}/scan`} className="btn-primary">
               Artikel-QR scannen
             </Link>
-          </div>
-          <p className="mt-6 text-xs text-quinary">
-            <Link
-              href={`/p/${productSku}?catalog=${slug}&from=scan`}
-              className="underline hover:text-secondary"
-            >
-              Dev-Shortcut: Scan überspringen
+            <Link href={`/c/${slug}`} className="btn-secondary">
+              Zum Katalog
             </Link>
-          </p>
+          </div>
         </div>
       </div>
     </AppShell>
