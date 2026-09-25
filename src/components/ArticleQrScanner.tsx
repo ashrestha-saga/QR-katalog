@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Catalog } from "@/lib/catalog";
 import {
   markArticleScanned,
-  parseArticleSkuFromQr,
+  parseScannedArticleQr,
   setCatalogSession,
 } from "@/lib/catalog-session";
 import { isInquiryCatalogMode } from "@/lib/order-mode";
@@ -67,11 +67,33 @@ export function ArticleQrScanner({ catalog }: Props) {
     clearReaderElement();
   }, [clearReaderElement]);
 
-  const resolveSku = useCallback((input: string): string | null => {
-    const trimmed = input.trim();
-    if (!trimmed) return null;
-    return parseArticleSkuFromQr(trimmed) ?? trimmed;
-  }, []);
+  const resolveScanInput = useCallback(
+    (input: string): string | null => {
+      const parsed = parseScannedArticleQr(input, catalog.slug);
+      switch (parsed.kind) {
+        case "sku":
+          setManualError(null);
+          return parsed.sku;
+        case "foreign_url":
+          setManualError(
+            "Dieser QR gehört nicht zu unserem Katalog (falsche Domain)."
+          );
+          return null;
+        case "wrong_catalog":
+          setManualError(
+            `Dieser QR gehört zu einem anderen Katalog (${parsed.scannedSlug}).`
+          );
+          return null;
+        case "invalid":
+        default:
+          setManualError(
+            "Ungültiger Artikel-QR. Erwartet: Artikelnummer oder Link zu /c/…/article/…"
+          );
+          return null;
+      }
+    },
+    [catalog.slug]
+  );
 
   const goToConfigure = useCallback(
     (sku: string) => {
@@ -124,16 +146,11 @@ export function ArticleQrScanner({ catalog }: Props) {
 
   const handleScanSuccess = useCallback(
     (decodedText: string) => {
-      const sku = resolveSku(decodedText);
-      if (!sku) {
-        setManualError(
-          "Ungültiger Artikel-QR. Erwartet: Artikel-ID oder /p/{id}"
-        );
-        return;
-      }
+      const sku = resolveScanInput(decodedText);
+      if (!sku) return;
       void validateAndGo(sku);
     },
-    [resolveSku, validateAndGo]
+    [resolveScanInput, validateAndGo]
   );
 
   const startScanner = useCallback(async () => {
@@ -179,11 +196,12 @@ export function ArticleQrScanner({ catalog }: Props) {
   }, [catalog.slug, cleanupScanner]);
 
   function submitManual() {
-    const sku = resolveSku(manualSku);
-    if (!sku) {
+    if (!manualSku.trim()) {
       setManualError("Bitte Artikelnummer eingeben (z. B. 12345).");
       return;
     }
+    const sku = resolveScanInput(manualSku);
+    if (!sku) return;
     void validateAndGo(sku);
   }
 
