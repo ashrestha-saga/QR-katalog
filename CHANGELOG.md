@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Scanner accepts full article URLs `{APP_URL}/c/{catalogSlug}/article/{sku}`: validates origin and catalog slug, extracts the SKU, then mints the scan grant (bare article numbers still work; foreign/wrong-catalog URLs are rejected).
 - Scan-grant cookie: article pages and `/api/articles` require a short-lived signed grant minted after scan (`POST /api/scan/grant`); direct `/article/{sku}` URLs redirect to `/c/{slug}/scan`.
 - Toast on the cart after adding an item (“Artikel hinzugefügt”), shown at the top of the page.
 - Step-1 Stückpreis UVP from OXID `oxtprice`: struck-through list price when higher than the sale price.
