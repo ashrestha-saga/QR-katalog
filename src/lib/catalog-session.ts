@@ -58,6 +58,32 @@ function appOrigin(): string | null {
   }
 }
 
+/** Strip leading `www.` so apex and www hosts compare equal. */
+function apexHostname(hostname: string): string {
+  return hostname.replace(/^www\./i, "").toLowerCase();
+}
+
+/**
+ * True when `scanned` is our app origin, including www ↔ apex variants
+ * (e.g. https://www.example.com vs https://example.com).
+ */
+function isAllowedAppOrigin(scannedOrigin: string): boolean {
+  const allowed = appOrigin();
+  if (!allowed) return false;
+  if (scannedOrigin === allowed) return true;
+  try {
+    const scanned = new URL(scannedOrigin);
+    const configured = new URL(allowed);
+    return (
+      scanned.protocol === configured.protocol &&
+      scanned.port === configured.port &&
+      apexHostname(scanned.hostname) === apexHostname(configured.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
 function looksLikeAbsoluteUrl(text: string): boolean {
   return /^[a-z][a-z0-9+.-]*:\/\//i.test(text);
 }
@@ -65,6 +91,7 @@ function looksLikeAbsoluteUrl(text: string): boolean {
 /**
  * Parse scanned QR text: bare article number, or
  * `{NEXT_PUBLIC_APP_URL}/c/{catalogSlug}/article/{sku}` (origin + catalog must match).
+ * www and non-www hosts for the configured app URL are both accepted.
  * Also accepts path-only `/c/{slug}/article/{sku}` and legacy `/p/{sku}` on our origin.
  */
 export function parseScannedArticleQr(
@@ -92,8 +119,7 @@ export function parseScannedArticleQr(
   }
 
   if (looksLikeAbsoluteUrl(trimmed)) {
-    const allowed = appOrigin();
-    if (!allowed || url.origin !== allowed) {
+    if (!isAllowedAppOrigin(url.origin)) {
       return { kind: "foreign_url" };
     }
   }
