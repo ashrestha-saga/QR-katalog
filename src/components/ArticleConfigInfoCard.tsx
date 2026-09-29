@@ -9,6 +9,8 @@ type Props = {
   hasVariants: boolean;
   isComplete: boolean;
   selectedVariant?: NormalizedVariant | null;
+  /** Menge — Gesamtpreis updates with this (step 1) */
+  quantity?: number;
 };
 
 function formatConfiguration(
@@ -29,7 +31,7 @@ function formatConfiguration(
     return "—";
   }
 
-  return product.variant || product.unitName || "Standardausführung";
+  return product.shortDescription?.trim() || "—";
 }
 
 function formatArticleNumber(
@@ -41,15 +43,29 @@ function formatArticleNumber(
   return sku;
 }
 
+function roundMoney(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
 export function ArticleConfigInfoCard({
   product,
   hasVariants,
   isComplete,
   selectedVariant,
+  quantity = 1,
 }: Props) {
   const taxRateLabel = Math.round(product.taxRate * 100);
+  const qty = Math.max(1, Math.floor(quantity));
   const showPrice = (!hasVariants || isComplete) && product.unitPriceExclTax > 0;
   const pzn = product.mpzn?.trim();
+  const listPrice = product.listPriceExclTax;
+  const showUvp =
+    showPrice &&
+    listPrice !== undefined &&
+    listPrice > product.unitPriceExclTax;
+  const totalPrice = roundMoney(product.unitPriceExclTax * qty);
+  const listTotal =
+    listPrice !== undefined ? roundMoney(listPrice * qty) : undefined;
 
   return (
     <div className="article-config-info-card" aria-live="polite">
@@ -75,11 +91,27 @@ export function ArticleConfigInfoCard({
       ) : null}
 
       <div className="article-config-info-row article-config-info-row-price">
-        <span className="article-config-info-label">Stückpreis</span>
-        <div className="article-config-info-value-stack">
-          <span className="article-config-info-value">
-            {showPrice ? formatEur(product.unitPriceExclTax) : "—"}
+        <span className="article-config-info-label">Gesamtbetrag</span>
+        {showPrice ? (
+          <span className="article-config-info-unit-price">
+            (à {formatEur(product.unitPriceExclTax)})
           </span>
+        ) : null}
+        <div className="article-config-info-value-stack">
+          {showPrice ? (
+            <span className="article-config-info-price-pair">
+              {showUvp && listTotal !== undefined ? (
+                <span className="article-config-info-price-uvp">
+                  {formatEur(listTotal)}
+                </span>
+              ) : null}
+              <span className="article-config-info-price-current">
+                {formatEur(totalPrice)}
+              </span>
+            </span>
+          ) : (
+            <span className="article-config-info-value">—</span>
+          )}
           <span className="article-config-info-tax">
             zzgl. {taxRateLabel} % MwSt.
           </span>

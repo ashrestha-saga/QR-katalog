@@ -2,6 +2,7 @@
 
 import type { Product } from "@/lib/mock-data";
 import { type LineTotals, formatEur } from "@/lib/pricing";
+import { formatVeLabel } from "@/lib/product-format";
 import { ProductSideSummary } from "./ProductSideSummary";
 import { ProductThumb } from "./ProductThumb";
 
@@ -83,9 +84,10 @@ export function ArticleOrderStep({
   onBack,
   onSave,
   saveLabel = "In Warenkorb speichern",
-  infoText = "Deine Auswahl wird im Warenkorb gespeichert. Du kannst danach weitere Artikel scannen oder zur Bestellübersicht wechseln.",
+  infoText = "Deine Auswahl wird im Warenkorb gespeichert. Du wirst danach direkt zum Warenkorb weitergeleitet.",
 }: Props) {
   const taxRateLabel = Math.round(lineTotals.taxRate * 100);
+  const veLabel = formatVeLabel(product.unitName);
 
   return (
     <div className="article-order-layout">
@@ -104,7 +106,12 @@ export function ArticleOrderStep({
         </div>
 
         <div className="article-quantity-row">
-          <span className="article-variant-label">Menge</span>
+          <div className="article-quantity-heading">
+            <span className="article-variant-label">Menge</span>
+            {veLabel ? (
+              <span className="article-quantity-ve">{veLabel}</span>
+            ) : null}
+          </div>
           <div className="cart-qty-control">
             <button
               type="button"
@@ -139,10 +146,6 @@ export function ArticleOrderStep({
           <div className="article-order-summary-row">
             <span>Produktpreis ({quantity} ×)</span>
             <span>{formatEur(lineTotals.subtotalExclTax)}</span>
-          </div>
-          <div className="article-order-summary-row">
-            <span>Versand</span>
-            <span className="font-semibold text-primary">Kostenlos</span>
           </div>
           <div className="article-order-summary-row">
             <span>{taxRateLabel} % MwSt.</span>

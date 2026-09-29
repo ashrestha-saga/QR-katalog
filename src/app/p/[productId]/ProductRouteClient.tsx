@@ -1,11 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CatalogGate } from "@/components/CatalogGate";
 import { FastRedirect } from "@/components/FastRedirect";
 import { RoutingWizard } from "@/components/RoutingWizard";
 import { DEFAULT_CATALOG_SLUG } from "@/lib/catalog-constants";
 import { canLoadArticle, getCatalogSession } from "@/lib/catalog-session";
+import { isShopCheckoutEnabled } from "@/lib/order-mode";
 import { clearHaendlerCookie, getHaendlerCookie } from "@/lib/cookies";
 import type { Product } from "@/lib/mock-data";
 import { hasVariants } from "@/lib/oxid-variant-selection";
@@ -23,20 +24,19 @@ export function ProductRouteClient({
   fromScan,
   forceWizard = false,
 }: Props) {
-  const [gate, setGate] = useState<"checking" | "blocked" | "allowed">("checking");
-  const [blockReason, setBlockReason] = useState<"no-catalog" | "scan-required">(
-    "no-catalog"
-  );
+  const router = useRouter();
+  const [gate, setGate] = useState<"checking" | "allowed">("checking");
   const [mode, setMode] = useState<"loading" | "fast" | "wizard">("loading");
 
   useEffect(() => {
     const slug = catalogSlug ?? getCatalogSession() ?? DEFAULT_CATALOG_SLUG;
-    const allowed = forceWizard || canLoadArticle(product.sku, slug, fromScan);
+    const allowed =
+      isShopCheckoutEnabled() ||
+      forceWizard ||
+      canLoadArticle(product.sku, slug, fromScan);
 
     if (!allowed) {
-      const hasCatalog = Boolean(getCatalogSession() || catalogSlug);
-      setBlockReason(hasCatalog ? "scan-required" : "no-catalog");
-      setGate("blocked");
+      router.replace(`/c/${slug}/scan`);
       return;
     }
 
@@ -49,23 +49,13 @@ export function ProductRouteClient({
     }
     const cookie = getHaendlerCookie();
     setMode(cookie ? "fast" : "wizard");
-  }, [product, catalogSlug, fromScan, forceWizard]);
+  }, [product, catalogSlug, fromScan, forceWizard, router]);
 
   if (gate === "checking") {
     return (
       <div className="flex min-h-[50vh] items-center justify-center text-sm text-quinary">
         Katalog-Session wird geprüft…
       </div>
-    );
-  }
-
-  if (gate === "blocked") {
-    return (
-      <CatalogGate
-        productSku={product.sku}
-        reason={blockReason}
-        catalogSlug={catalogSlug ?? getCatalogSession()}
-      />
     );
   }
 

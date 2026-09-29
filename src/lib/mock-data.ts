@@ -12,11 +12,17 @@ export type OxidVariantRecord = {
   oxtitle: string;
   oxshortdesc: string;
   oxprice: string;
+  /** UVP / list price (OXID oxtprice), when set and above oxprice */
+  oxtprice?: string;
   oxpic1: string;
   oxstock: number;
   oxvarselect: string;
   /** Pharmazentralnummer (PZN), when provided by OXID */
   mpzn?: string;
+  /** Decoded/sanitized HTML from OXID mwvfeature */
+  featureHtml?: string;
+  /** Beschreibung HTML from mwvrtc, else sanitized oxlongdesc */
+  descriptionHtml?: string;
   /** Resolved server-side — image host env is not available in the browser */
   thumbnailUrl?: string;
   imageUrls?: string[];
@@ -33,6 +39,10 @@ export type Product = {
   shortDescription?: string;
   description?: string;
   details?: string;
+  /** Beschreibung HTML from mwvrtc, else sanitized oxlongdesc */
+  descriptionHtml?: string;
+  /** Decoded/sanitized HTML from OXID mwvfeature */
+  featureHtml?: string;
   modelType?: string;
   deliveryScope?: string;
   /** Packaging unit (VE), e.g. "240 Stück" — from OXID oxunitname */
@@ -48,6 +58,8 @@ export type Product = {
   imageUrls?: string[];
   /** Unit price excluding tax (EUR) */
   unitPriceExclTax: number;
+  /** UVP / list price excl. tax (EUR) from OXID oxtprice — shown struck when higher than unit price */
+  listPriceExclTax?: number;
   /** OXID stock flag; -1 = unknown */
   stock?: number;
   /** Pharmazentralnummer (PZN), from OXID mpzn */

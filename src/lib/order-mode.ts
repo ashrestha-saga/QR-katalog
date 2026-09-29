@@ -18,3 +18,8 @@ export function getOrderMode(): OrderMode {
 export function isShopCheckoutEnabled(): boolean {
   return getOrderMode() === "shop";
 }
+
+/** Inquiry mode requires a scan grant before opening article routes; shop mode does not. */
+export function isScanGrantRequired(): boolean {
+  return getOrderMode() === "inquiry";
+}

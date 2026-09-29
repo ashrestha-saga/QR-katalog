@@ -4,9 +4,11 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Catalog } from "@/lib/catalog";
 import {
-  parseArticleSkuFromQr,
+  markArticleScanned,
+  parseScannedArticleQr,
   setCatalogSession,
 } from "@/lib/catalog-session";
+import { requestScanGrant } from "@/lib/request-scan-grant";
 import { CatalogAppShell } from "./CatalogAppShell";
 
 const READER_ID = "article-qr-reader";
@@ -63,16 +65,36 @@ export function ArticleQrScanner({ catalog }: Props) {
     clearReaderElement();
   }, [clearReaderElement]);
 
-  const resolveSku = useCallback((input: string): string | null => {
-    const trimmed = input.trim();
-    if (!trimmed) return null;
-    return parseArticleSkuFromQr(trimmed) ?? trimmed;
-  }, []);
+  const resolveScanInput = useCallback(
+    (input: string): string | null => {
+      const parsed = parseScannedArticleQr(input, catalog.slug);
+      switch (parsed.kind) {
+        case "sku":
+          setManualError(null);
+          return parsed.sku;
+        case "foreign_url":
+          setManualError(
+            "Dieser QR gehört nicht zu unserem Katalog (falsche Domain)."
+          );
+          return null;
+        case "wrong_catalog":
+          setManualError(
+            `Dieser QR gehört zu einem anderen Katalog (${parsed.scannedSlug}).`
+          );
+          return null;
+        case "invalid":
+        default:
+          setManualError(
+            "Ungültiger Artikel-QR. Erwartet: Artikelnummer oder Link zu /c/…/article/…"
+          );
+          return null;
+      }
+    },
+    [catalog.slug]
+  );
 
   const goToConfigure = useCallback(
     (sku: string) => {
-      if (processingRef.current) return;
-
       const now = Date.now();
       if (
         lastScanRef.current?.sku === sku &&
@@ -80,14 +102,12 @@ export function ArticleQrScanner({ catalog }: Props) {
       ) {
         return;
       }
-      processingRef.current = true;
       lastScanRef.current = { sku, at: now };
 
       setCatalogSession(catalog.slug);
-      void cleanupScanner().finally(() => {
-        processingRef.current = false;
-      });
-      router.push(`/c/${catalog.slug}/article/${sku}`);
+      markArticleScanned(sku);
+      void cleanupScanner();
+      router.push(`/c/${catalog.slug}/article/${encodeURIComponent(sku)}`);
     },
     [catalog.slug, cleanupScanner, router]
   );
@@ -98,14 +118,12 @@ export function ArticleQrScanner({ catalog }: Props) {
 
       setManualError(null);
       setLookupLoading(true);
+      processingRef.current = true;
       try {
-        const res = await fetch(
-          `/api/articles/${encodeURIComponent(sku)}`,
-          { cache: "no-store" }
-        );
-        if (!res.ok) {
+        const result = await requestScanGrant(catalog.slug, sku);
+        if (!result.ok) {
           setManualError(
-            res.status === 404
+            result.status === 404
               ? `Artikel ${sku} wurde im Shop nicht gefunden.`
               : "Artikel konnte nicht geladen werden. Bitte erneut versuchen."
           );
@@ -117,24 +135,20 @@ export function ArticleQrScanner({ catalog }: Props) {
           "Verbindung zum Shop fehlgeschlagen. Bitte erneut versuchen."
         );
       } finally {
+        processingRef.current = false;
         setLookupLoading(false);
       }
     },
-    [goToConfigure]
+    [catalog.slug, goToConfigure]
   );
 
   const handleScanSuccess = useCallback(
     (decodedText: string) => {
-      const sku = resolveSku(decodedText);
-      if (!sku) {
-        setManualError(
-          "Ungültiger Artikel-QR. Erwartet: Artikel-ID oder /p/{id}"
-        );
-        return;
-      }
+      const sku = resolveScanInput(decodedText);
+      if (!sku) return;
       void validateAndGo(sku);
     },
-    [resolveSku, validateAndGo]
+    [resolveScanInput, validateAndGo]
   );
 
   const startScanner = useCallback(async () => {
@@ -178,11 +192,12 @@ export function ArticleQrScanner({ catalog }: Props) {
   }, [catalog.slug, cleanupScanner]);
 
   function submitManual() {
-    const sku = resolveSku(manualSku);
-    if (!sku) {
+    if (!manualSku.trim()) {
       setManualError("Bitte Artikelnummer eingeben (z. B. 12345).");
       return;
     }
+    const sku = resolveScanInput(manualSku);
+    if (!sku) return;
     void validateAndGo(sku);
   }
 
