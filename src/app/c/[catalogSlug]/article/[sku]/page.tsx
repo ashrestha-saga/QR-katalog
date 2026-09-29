@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { ArticleConfigure } from "@/components/ArticleConfigure";
 import { getCatalog } from "@/lib/catalog";
 import { fetchArticleBySku } from "@/lib/product-source";
+import { isScanGrantRequired } from "@/lib/order-mode";
 import { grantAllowsSku, readScanGrant } from "@/lib/scan-grant";
 
 export const preferredRegion = "fra1";
@@ -21,15 +22,17 @@ export default async function ArticleConfigurePage({ params, searchParams }: Pro
     notFound();
   }
 
-  const grant = await readScanGrant();
-  const allowed =
-    grantAllowsSku(grant, catalog.slug, sku) ||
-    (edit?.trim()
-      ? grantAllowsSku(grant, catalog.slug, edit.trim())
-      : false);
+  if (isScanGrantRequired()) {
+    const grant = await readScanGrant();
+    const allowed =
+      grantAllowsSku(grant, catalog.slug, sku) ||
+      (edit?.trim()
+        ? grantAllowsSku(grant, catalog.slug, edit.trim())
+        : false);
 
-  if (!allowed) {
-    redirect(`/c/${catalog.slug}/scan`);
+    if (!allowed) {
+      redirect(`/c/${catalog.slug}/scan`);
+    }
   }
 
   const product = await fetchArticleBySku(sku);

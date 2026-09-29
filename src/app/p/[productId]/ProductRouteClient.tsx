@@ -6,6 +6,7 @@ import { FastRedirect } from "@/components/FastRedirect";
 import { RoutingWizard } from "@/components/RoutingWizard";
 import { DEFAULT_CATALOG_SLUG } from "@/lib/catalog-constants";
 import { canLoadArticle, getCatalogSession } from "@/lib/catalog-session";
+import { isShopCheckoutEnabled } from "@/lib/order-mode";
 import { clearHaendlerCookie, getHaendlerCookie } from "@/lib/cookies";
 import type { Product } from "@/lib/mock-data";
 import { hasVariants } from "@/lib/oxid-variant-selection";
@@ -29,7 +30,10 @@ export function ProductRouteClient({
 
   useEffect(() => {
     const slug = catalogSlug ?? getCatalogSession() ?? DEFAULT_CATALOG_SLUG;
-    const allowed = forceWizard || canLoadArticle(product.sku, slug, fromScan);
+    const allowed =
+      isShopCheckoutEnabled() ||
+      forceWizard ||
+      canLoadArticle(product.sku, slug, fromScan);
 
     if (!allowed) {
       router.replace(`/c/${slug}/scan`);

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { fetchArticleBySku, getProductSourceLabel } from "@/lib/product-source";
 import { isMerzljakApiConfigured } from "@/lib/merzljak-api/config";
+import { isScanGrantRequired } from "@/lib/order-mode";
 import { grantAllowsSku, readScanGrant } from "@/lib/scan-grant";
 
 export const preferredRegion = "fra1";
@@ -11,7 +12,7 @@ type Props = {
 
 /**
  * GET /api/articles/{sku}?catalog={slug}
- * Requires a valid scan-grant cookie for this catalog + SKU.
+ * Requires a valid scan-grant cookie in inquiry mode; open in shop mode.
  */
 export async function GET(request: Request, { params }: Props) {
   const { sku } = await params;
@@ -30,12 +31,14 @@ export async function GET(request: Request, { params }: Props) {
     );
   }
 
-  const grant = await readScanGrant();
-  if (!grantAllowsSku(grant, catalogSlug, decoded)) {
-    return NextResponse.json(
-      { error: "scan_required", sku: decoded },
-      { status: 403 }
-    );
+  if (isScanGrantRequired()) {
+    const grant = await readScanGrant();
+    if (!grantAllowsSku(grant, catalogSlug, decoded)) {
+      return NextResponse.json(
+        { error: "scan_required", sku: decoded },
+        { status: 403 }
+      );
+    }
   }
 
   const product = await fetchArticleBySku(decoded);

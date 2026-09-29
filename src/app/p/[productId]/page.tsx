@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { ProductRouteClient } from "./ProductRouteClient";
 import { DEFAULT_CATALOG_SLUG } from "@/lib/catalog-constants";
 import { fetchArticleBySku } from "@/lib/product-source";
+import { isScanGrantRequired } from "@/lib/order-mode";
 import { grantAllowsSku, readScanGrant } from "@/lib/scan-grant";
 
 export const preferredRegion = "fra1";
@@ -22,9 +23,11 @@ export default async function ProductPage({ params, searchParams }: Props) {
     notFound();
   }
 
-  const grant = await readScanGrant();
-  if (!grantAllowsSku(grant, catalogSlug, sku)) {
-    redirect(`/c/${catalogSlug}/scan`);
+  if (isScanGrantRequired()) {
+    const grant = await readScanGrant();
+    if (!grantAllowsSku(grant, catalogSlug, sku)) {
+      redirect(`/c/${catalogSlug}/scan`);
+    }
   }
 
   const product = await fetchArticleBySku(sku);
