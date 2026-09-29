@@ -87,4 +87,5 @@ foreground color (default `#195084`).
 
 ## Branding
 
-Per-company logo files live in `public/logo/`. Swap them when deploying for a new company.
+Active brand assets are always `public/logo/main-logo.svg` and `public/logo/main-favicon.svg`.
+Replace those files (keep the names) when deploying for a different company.
