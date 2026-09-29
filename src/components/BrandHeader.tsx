@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CartIconButton } from "./CartIconButton";
+import { COMPANY } from "@/lib/company";
 
 type Props = {
   title?: string;
@@ -30,10 +31,10 @@ export function BrandHeader({
         aria-label="Zur Startseite"
       >
         <Image
-          src="/logo/Med Sales Logo.svg"
-          alt="Med Sales"
-          width={181}
-          height={40}
+          src="/logo/main-logo.svg"
+          alt={COMPANY.name}
+          width={163}
+          height={56}
           className="h-9 w-auto"
           priority
         />

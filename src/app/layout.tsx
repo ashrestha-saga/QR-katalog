@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/logo/Med Sales Favicon Symbol.svg",
+    icon: "/logo/main-favicon.svg",
   },
 };
 
