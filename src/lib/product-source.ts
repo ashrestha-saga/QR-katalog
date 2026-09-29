@@ -1,5 +1,5 @@
-import { fetchArticleFromMerzljak } from "@/lib/merzljak-api/client";
-import { isMerzljakApiConfigured } from "@/lib/merzljak-api/config";
+import { fetchArticleFromShopApi } from "@/lib/shop-api/client";
+import { isShopApiConfigured } from "@/lib/shop-api/config";
 import { type Product } from "@/lib/mock-data";
 import { getMockOxidBySku } from "@/lib/shop-basket";
 
@@ -10,27 +10,27 @@ function enrichProductWithOxidId(product: Product): Product {
 }
 
 /**
- * Resolve article details from the Merzljak shop API. Products are sourced
+ * Resolve article details from the OXID shop API. Products are sourced
  * exclusively from the API in production (no mock fallback).
  */
 export async function fetchArticleBySku(sku: string): Promise<Product | null> {
   const trimmed = sku.trim();
   if (!trimmed) return null;
 
-  if (!isMerzljakApiConfigured()) {
-    console.error("[product-source] Merzljak API is not configured");
+  if (!isShopApiConfigured()) {
+    console.error("[product-source] Shop API is not configured");
     return null;
   }
 
   try {
-    const fromApi = await fetchArticleFromMerzljak(trimmed);
+    const fromApi = await fetchArticleFromShopApi(trimmed);
     return fromApi ? enrichProductWithOxidId(fromApi) : null;
   } catch (error) {
-    console.error("[product-source] Merzljak API:", error);
+    console.error("[product-source] Shop API:", error);
     return null;
   }
 }
 
 export function getProductSourceLabel(): "api" | "none" {
-  return isMerzljakApiConfigured() ? "api" : "none";
+  return isShopApiConfigured() ? "api" : "none";
 }

@@ -7,7 +7,7 @@ two kinds of QR codes:
 2. **Article QR** (article id only) → scanned in-app, opens `/p/{id}`, where the
    shopper configures quantity and is forwarded to the shop basket.
 
-Article data comes exclusively from the **Merzljak OXID shop API**. Each company is
+Article data comes exclusively from the **OXID shop API**. Each company is
 deployed as its own instance and configured entirely through environment variables.
 
 ## Setup
@@ -45,8 +45,8 @@ variables:
 | `CATALOG_TITLE`, `CATALOG_EDITION`, `CATALOG_TAGLINE` | Catalog landing metadata |
 | `NEXT_PUBLIC_CATALOG_FORWARD_URL` | Order forwarding endpoint |
 | `NEXT_PUBLIC_SHOP_BASE_URL` | OXID shop root for basket redirect |
-| `MERZLJAK_API_BASE_URL` / `_USERNAME` / `_PASSWORD` | Shop API (product source) |
-| `MERZLJAK_IMAGE_BASE_URL` | Product image host (defaults to API base) |
+| `SHOP_API_BASE_URL` / `_USERNAME` / `_PASSWORD` | Shop API (product source) |
+| `SHOP_IMAGE_BASE_URL` | Product image host (defaults to API base) |
 | `COMPANY_*` | Footer + page metadata |
 | `THEME_COLOR_*` | Brand palette (see `src/lib/theme.ts`) |
 

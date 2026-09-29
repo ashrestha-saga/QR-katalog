@@ -19,9 +19,12 @@ export type ScanGrantPayload = {
 function getSecret(): string {
   const dedicated = process.env.SCAN_GRANT_SECRET?.trim();
   if (dedicated) return dedicated;
-  const fallback = process.env.MERZLJAK_API_PASSWORD;
-  if (fallback) return fallback;
-  throw new Error("SCAN_GRANT_SECRET (or MERZLJAK_API_PASSWORD) is required for scan grants");
+  const shopPassword =
+    process.env.SHOP_API_PASSWORD ?? process.env.MERZLJAK_API_PASSWORD;
+  if (shopPassword) return shopPassword;
+  throw new Error(
+    "SCAN_GRANT_SECRET (or SHOP_API_PASSWORD) is required for scan grants"
+  );
 }
 
 function b64urlEncode(buf: Buffer | string): string {

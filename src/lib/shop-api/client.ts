@@ -3,8 +3,10 @@ import {
   mapOxidArticleToProduct,
 } from "./map-article";
 import {
-  getMerzljakApiBaseUrl,
-  isMerzljakApiConfigured,
+  getShopApiBaseUrl,
+  getShopApiPassword,
+  getShopApiUsername,
+  isShopApiConfigured,
 } from "./config";
 import type { Product } from "@/lib/mock-data";
 
@@ -15,7 +17,7 @@ type TokenCache = {
 
 let tokenCache: TokenCache | null = null;
 
-function describeSecret(value: string | undefined): string {
+function describeSecret(value: string | undefined | null): string {
   return value ? `present(length=${value.length})` : "missing";
 }
 
@@ -24,21 +26,21 @@ function describeToken(token: string): string {
 }
 
 function apiUrl(path: string): string {
-  const base = getMerzljakApiBaseUrl();
-  if (!base) throw new Error("MERZLJAK_API_BASE_URL is not set");
+  const base = getShopApiBaseUrl();
+  if (!base) throw new Error("SHOP_API_BASE_URL is not set");
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 async function login(): Promise<string> {
-  const username = process.env.MERZLJAK_API_USERNAME?.trim();
-  const password = process.env.MERZLJAK_API_PASSWORD;
+  const username = getShopApiUsername();
+  const password = getShopApiPassword();
 
   if (!username || !password) {
-    throw new Error("MERZLJAK_API_USERNAME and MERZLJAK_API_PASSWORD are required");
+    throw new Error("SHOP_API_USERNAME and SHOP_API_PASSWORD are required");
   }
 
-  console.info("[merzljak-api] login env", {
-    baseUrl: getMerzljakApiBaseUrl() ? "present" : "missing",
+  console.info("[shop-api] login env", {
+    baseUrl: getShopApiBaseUrl() ? "present" : "missing",
     username: describeSecret(username),
     password: describeSecret(password),
   });
@@ -65,7 +67,7 @@ async function login(): Promise<string> {
 
   if (!res.ok || !data.token) {
     const msg = data.message ?? data.error ?? `Login failed (${res.status})`;
-    console.error("[merzljak-api] login failed", {
+    console.error("[shop-api] login failed", {
       status: res.status,
       responseStatus: data.status,
       message: msg,
@@ -80,7 +82,7 @@ async function login(): Promise<string> {
       : Date.now() + 55 * 60 * 1000;
 
   tokenCache = { token: data.token, expireAt };
-  console.info("[merzljak-api] token generated", {
+  console.info("[shop-api] token generated", {
     status: res.status,
     responseStatus: data.status,
     token: describeToken(data.token),
@@ -91,7 +93,7 @@ async function login(): Promise<string> {
 
 async function getAccessToken(): Promise<string> {
   if (tokenCache && tokenCache.expireAt > Date.now() + 30_000) {
-    console.info("[merzljak-api] using cached token", {
+    console.info("[shop-api] using cached token", {
       token: describeToken(tokenCache.token),
       expiresAt: new Date(tokenCache.expireAt).toISOString(),
     });
@@ -100,7 +102,7 @@ async function getAccessToken(): Promise<string> {
   return login();
 }
 
-async function merzljakPost<T>(
+async function shopApiPost<T>(
   path: string,
   payload: unknown,
   authenticated: boolean
@@ -112,7 +114,7 @@ async function merzljakPost<T>(
 
   if (authenticated) {
     const token = await getAccessToken();
-    console.info("[merzljak-api] using token for request", {
+    console.info("[shop-api] using token for request", {
       path,
       token: describeToken(token),
     });
@@ -132,7 +134,7 @@ async function merzljakPost<T>(
     error?: string;
   };
 
-  console.info("[merzljak-api] response received", {
+  console.info("[shop-api] response received", {
     path,
     authenticated,
     status: res.status,
@@ -149,7 +151,7 @@ async function merzljakPost<T>(
       (typeof data === "object" && data !== null && "error" in data
         ? String((data as { error?: string }).error)
         : null) ??
-      `Merzljak API error (${res.status})`;
+      `Shop API error (${res.status})`;
     throw new Error(msg);
   }
 
@@ -160,7 +162,7 @@ async function merzljakPost<T>(
     (data as { status?: string }).status === "error"
   ) {
     throw new Error(
-      (data as { message?: string }).message ?? "Merzljak API returned error status"
+      (data as { message?: string }).message ?? "Shop API returned error status"
     );
   }
 
@@ -168,17 +170,17 @@ async function merzljakPost<T>(
 }
 
 /** Fetch one or more articles by OXID article number (OXARTNUM / oxartnum). */
-export async function fetchArticlesFromMerzljak(
+export async function fetchArticlesFromShopApi(
   articleNumbers: string[]
 ): Promise<Product[]> {
-  if (!isMerzljakApiConfigured()) {
-    throw new Error("Merzljak API is not configured");
+  if (!isShopApiConfigured()) {
+    throw new Error("Shop API is not configured");
   }
 
   const numbers = [...new Set(articleNumbers.map((n) => n.trim()).filter(Boolean))];
   if (numbers.length === 0) return [];
 
-  const data = await merzljakPost<unknown>(
+  const data = await shopApiPost<unknown>(
     "/index.php?cl=articleapi&fnc=getArticles",
     { oxartnum: numbers },
     true
@@ -192,7 +194,7 @@ export async function fetchArticlesFromMerzljak(
     if (product) products.push(product);
   }
 
-  console.info("[merzljak-api] articles mapped", {
+  console.info("[shop-api] articles mapped", {
     requested: numbers.length,
     records: records.length,
     products: products.length,
@@ -201,8 +203,8 @@ export async function fetchArticlesFromMerzljak(
   return products;
 }
 
-export async function fetchArticleFromMerzljak(sku: string): Promise<Product | null> {
-  const products = await fetchArticlesFromMerzljak([sku]);
+export async function fetchArticleFromShopApi(sku: string): Promise<Product | null> {
+  const products = await fetchArticlesFromShopApi([sku]);
   return (
     products.find((p) => p.sku === sku) ??
     products[0] ??

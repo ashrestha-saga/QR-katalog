@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchArticleBySku, getProductSourceLabel } from "@/lib/product-source";
-import { isMerzljakApiConfigured } from "@/lib/merzljak-api/config";
+import { isShopApiConfigured } from "@/lib/shop-api/config";
 import { isScanGrantRequired } from "@/lib/order-mode";
 import { grantAllowsSku, readScanGrant } from "@/lib/scan-grant";
 
@@ -49,7 +49,7 @@ export async function GET(request: Request, { params }: Props) {
         error: "article_not_found",
         sku: decoded,
         source: getProductSourceLabel(),
-        api_configured: isMerzljakApiConfigured(),
+        api_configured: isShopApiConfigured(),
       },
       { status: 404 }
     );
@@ -58,6 +58,6 @@ export async function GET(request: Request, { params }: Props) {
   return NextResponse.json({
     product,
     source: getProductSourceLabel(),
-    api_configured: isMerzljakApiConfigured(),
+    api_configured: isShopApiConfigured(),
   });
 }
