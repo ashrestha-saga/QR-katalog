@@ -1,5 +1,5 @@
 import type { OxidVariantRecord, Product } from "@/lib/mock-data";
-import { getMerzljakImageBaseUrl } from "./config";
+import { getShopImageBaseUrl } from "./config";
 import { sanitizeDescriptionHtml } from "./sanitize-rich-html";
 
 type OxidArticleRecord = Record<string, unknown>;
@@ -100,7 +100,7 @@ function htmlToText(value: string | null): string | undefined {
 }
 
 function getImageUrls(record: OxidArticleRecord): string[] {
-  const base = getMerzljakImageBaseUrl();
+  const base = getShopImageBaseUrl();
   if (!base) return [];
   const urls: string[] = [];
 

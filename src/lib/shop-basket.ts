@@ -1,4 +1,4 @@
-import { getMerzljakApiBaseUrl } from "@/lib/merzljak-api/config";
+import { getShopApiBaseUrl } from "@/lib/shop-api/config";
 
 export type OxidBasketLine = {
   oxidId: string;
@@ -13,10 +13,10 @@ export function clampBasketQuantity(value: number): number {
 /** Shop root for OXID basket redirect (no trailing slash) */
 export function getShopBaseUrl(): string {
   const fromEnv =
-    process.env.NEXT_PUBLIC_SHOP_BASE_URL?.trim() || getMerzljakApiBaseUrl();
+    process.env.NEXT_PUBLIC_SHOP_BASE_URL?.trim() || getShopApiBaseUrl();
   if (!fromEnv) {
     throw new Error(
-      "NEXT_PUBLIC_SHOP_BASE_URL (or MERZLJAK_API_BASE_URL) must be set"
+      "NEXT_PUBLIC_SHOP_BASE_URL (or SHOP_API_BASE_URL) must be set"
     );
   }
   return fromEnv.replace(/\/$/, "");

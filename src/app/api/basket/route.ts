@@ -53,7 +53,7 @@ async function resolveOxidBasketLines(
 
     if (!oxidId) {
       return {
-        error: `missing OXID article id for SKU ${sku} (Merzljak API or MOCK_OXID_BY_SKU)`,
+        error: `missing OXID article id for SKU ${sku} (Shop API or MOCK_OXID_BY_SKU)`,
         status: 400,
       };
     }

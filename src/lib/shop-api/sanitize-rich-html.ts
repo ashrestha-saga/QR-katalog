@@ -1,4 +1,4 @@
-import { getMerzljakImageBaseUrl } from "./config";
+import { getShopImageBaseUrl } from "./config";
 
 const OXID_PICTURE_DIR_PLACEHOLDER =
   /\[\{\$oViewConf->getPictureDir\(\)\}\]/gi;
@@ -59,7 +59,7 @@ function escapeAttr(value: string): string {
 }
 
 export function getShopPicturesBaseUrl(): string {
-  const shopBase = getMerzljakImageBaseUrl()?.replace(/\/$/, "");
+  const shopBase = getShopImageBaseUrl()?.replace(/\/$/, "");
   return shopBase ? `${shopBase}/out/pictures` : "/out/pictures";
 }
 
