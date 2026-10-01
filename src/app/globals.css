@@ -345,11 +345,11 @@ body {
   }
 
   .cart-qty-btn {
-    @apply flex h-10 w-10 items-center justify-center bg-transparent text-lg font-medium text-primary transition hover:bg-porcelain disabled:opacity-40;
+    @apply flex h-10 w-10 items-center justify-center bg-transparent text-lg font-medium text-black transition hover:bg-porcelain disabled:opacity-40;
   }
 
   .cart-qty-value {
-    @apply min-w-[2.25rem] border-x border-mercury px-2 text-center text-sm font-semibold text-secondary;
+    @apply min-w-[2.25rem] border-x border-mercury px-2 text-center text-sm font-semibold text-black;
   }
 
   .cart-remove-btn {
@@ -385,11 +385,11 @@ body {
   }
 
   .cart-btn-outline {
-    @apply flex min-h-12 w-full items-center justify-center rounded-lg border border-primary bg-white px-5 py-3 text-center text-sm font-semibold text-primary transition hover:bg-porcelain;
+    @apply flex min-h-12 w-full items-center justify-center rounded-lg border border-secondary bg-white px-5 py-3 text-center text-sm font-semibold text-secondary transition hover:bg-porcelain;
   }
 
   .cart-btn-primary {
-    @apply flex min-h-12 w-full items-center justify-center gap-2 rounded-lg border border-accent-pink bg-accent-pink px-5 py-3 text-center text-sm font-semibold text-white shadow-btn-primary transition hover:border-accent-pink-hover hover:bg-accent-pink-hover disabled:opacity-50;
+    @apply flex min-h-12 w-full items-center justify-center gap-2 rounded-lg border border-tertiary bg-tertiary px-5 py-3 text-center text-sm font-semibold text-white shadow-btn-primary transition hover:border-tertiary hover:bg-white hover:text-tertiary disabled:opacity-50;
   }
 
   .cart-checkout-note {
@@ -1129,15 +1129,15 @@ body {
   }
 
   .quantity-btn {
-    @apply flex h-8 w-8 items-center justify-center border-0 bg-transparent text-lg font-medium text-secondary hover:bg-porcelain disabled:opacity-40;
+    @apply flex h-8 w-8 items-center justify-center border-0 bg-transparent text-lg font-medium text-black hover:bg-porcelain disabled:opacity-40;
   }
 
   .input-field {
-    @apply w-full rounded-lg border border-mercury px-4 py-3 text-base text-secondary transition focus:border-accent-pink focus:outline-none;
+    @apply w-full rounded-lg border border-mercury px-4 py-3 text-base text-black transition focus:border-secondary focus:outline-none;
   }
 
   .select-field {
-    @apply w-full rounded-lg border border-mercury px-4 py-3 text-sm font-medium text-secondary transition focus:border-accent-pink focus:outline-none;
+    @apply w-full rounded-lg border border-mercury px-4 py-3 text-sm font-medium text-black transition focus:border-secondary focus:outline-none;
   }
 
   .select-field.inquiry-modal-title-select {
@@ -1153,11 +1153,11 @@ body {
   }
 
   .btn-primary {
-    @apply min-h-12 w-full rounded-lg border border-accent-pink bg-accent-pink px-5 py-3 text-center text-sm font-medium text-white transition hover:border-accent-pink-hover hover:bg-accent-pink-hover active:scale-[0.99] disabled:opacity-50;
+    @apply min-h-12 w-full rounded-lg border border-tertiary bg-tertiary px-5 py-3 text-center text-sm font-medium text-white transition hover:border-tertiary hover:bg-white hover:text-tertiary active:scale-[0.99] disabled:opacity-50;
   }
 
   .btn-secondary {
-    @apply min-h-12 w-full rounded-lg border border-primary bg-white px-5 py-3 text-center text-sm font-medium text-primary transition hover:border-primary-hover hover:bg-porcelain;
+    @apply min-h-12 w-full rounded-lg border border-secondary bg-white px-5 py-3 text-center text-sm font-medium text-secondary transition hover:border-secondary-hover hover:bg-porcelain;
   }
 
   .btn-inline {
@@ -1258,7 +1258,7 @@ body {
   }
 
   .nav-btn-mobile-primary {
-    @apply border-accent-pink bg-accent-pink text-white active:bg-accent-pink-hover;
+    @apply border-tertiary bg-tertiary text-white active:border-tertiary active:bg-white active:text-tertiary;
   }
 
   .nav-btn-mobile-auto {
@@ -1739,11 +1739,11 @@ body {
   }
 
   .nav-buttons .btn-primary {
-    @apply nav-btn-mobile-primary border-accent-pink;
+    @apply nav-btn-mobile-primary border-tertiary;
   }
 
   .nav-buttons .btn-secondary {
-    @apply nav-btn-mobile text-secondary;
+    @apply nav-btn-mobile border-secondary text-secondary;
   }
 
   .nav-buttons .nav-btn-back {
