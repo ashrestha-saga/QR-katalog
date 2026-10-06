@@ -35,7 +35,7 @@ export function BrandHeader({
           alt={COMPANY.name}
           width={163}
           height={56}
-          className="h-9 w-auto"
+          className="h-14 w-auto"
           priority
         />
       </Link>

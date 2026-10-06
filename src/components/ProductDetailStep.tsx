@@ -272,7 +272,7 @@ function ProductDetailCopy({ product }: { product: Product }) {
       ) : null}
 
       {product.categories && product.categories.length > 0 && (
-        <section className="rounded-xl border border-mercury bg-cart-line p-3">
+        <section className="rounded-xl border border-mercury bg-quaternary p-3">
           <h3 className="mb-2 text-sm font-semibold">Kategorien</h3>
           <div className="flex flex-wrap gap-2">
             {product.categories.map((category) => (
