@@ -152,7 +152,7 @@ body {
   }
 
   .scan-option-card-qr {
-    @apply border-primary/20 bg-accent-mint/60;
+    @apply border-primary/20 bg-quaternary/60;
   }
 
   .scan-option-header {
@@ -160,7 +160,7 @@ body {
   }
 
   .scan-option-icon {
-    @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-accent-mint text-primary;
+    @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-quaternary text-primary;
   }
 
   .scan-option-title {
@@ -225,7 +225,7 @@ body {
   }
 
   .scan-example-pill {
-    @apply rounded-full border border-primary/20 bg-accent-mint px-3 py-1 text-sm font-medium text-primary transition hover:border-primary/40 hover:bg-white;
+    @apply rounded-full border border-primary/20 bg-quaternary px-3 py-1 text-sm font-medium text-primary transition hover:border-primary/40 hover:bg-white;
   }
 
   .scan-info-bar {
@@ -241,7 +241,7 @@ body {
   }
 
   .landing-hero-card {
-    @apply mb-6 rounded-xl border border-primary/20 bg-accent-mint/60 p-6 text-center shadow-card sm:p-8;
+    @apply mb-6 rounded-xl border border-primary/20 bg-quaternary/60 p-6 text-center shadow-card sm:p-8;
   }
 
   .landing-hero-icon {
@@ -277,7 +277,7 @@ body {
   }
 
   .landing-step-number {
-    @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent-mint text-xs font-bold text-primary;
+    @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-quaternary text-xs font-bold text-primary;
   }
 
   .cart-page {
@@ -301,7 +301,7 @@ body {
   }
 
   .cart-line-card {
-    @apply rounded-xl border border-mercury bg-cart-line p-4;
+    @apply rounded-xl border border-mercury bg-quaternary p-4;
   }
 
   .cart-line-top {
@@ -919,7 +919,7 @@ body {
   }
 
   .article-config-info-row-price {
-    @apply items-center bg-porcelain/60 py-3.5;
+    @apply items-center bg-quaternary/60 py-3.5;
   }
 
   .article-config-info-unit-price {
@@ -1182,7 +1182,7 @@ body {
   }
 
   .success-message {
-    @apply mb-5 rounded-xl bg-accent-success-bg p-6 text-center;
+    @apply mb-5 rounded-xl bg-quaternary p-6 text-center;
   }
 
   .success-icon {
